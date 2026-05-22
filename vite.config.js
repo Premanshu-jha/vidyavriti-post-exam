@@ -9,7 +9,12 @@ export default defineConfig({
       '/chat': {
         target: 'http://localhost:8080',
         changeOrigin: true,
-        secure: false,
+        secure: false
+      },
+      '/students':{
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
       }
     }
   }
