@@ -1,12 +1,16 @@
-import ChatStreaming from "./components/ChatStreaming"
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import StudentList from './components/StudentList';
+import StudentReport from './components/StudentReport';
 
 function App() {
-
   return (
-    <>
-     <ChatStreaming />
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+      <Route path="/" element={<StudentList />} />
+        <Route path="/student/:id/report" element={<StudentReport />} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
