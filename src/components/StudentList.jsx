@@ -72,21 +72,25 @@ const StudentList = () => {
                         </tbody>
                     </table>
 
-                    <div className="pagination-controls">
+                   <div className="pagination-controls">
                         <button 
                             className="btn-secondary" 
                             disabled={pageNumber === 0} 
                             onClick={() => setPageNumber(prev => prev - 1)}
+                            title="Previous Page"
                         >
-                            Previous
+                            &#9664; {/* Solid Left Triangle */}
                         </button>
-                        <span>Page {pageNumber + 1}</span>
+                        
+                        <span className="page-indicator">Page {pageNumber + 1}</span>
+                        
                         <button 
                             className="btn-secondary" 
                             disabled={students.length < pageSize} 
                             onClick={() => setPageNumber(prev => prev + 1)}
+                            title="Next Page"
                         >
-                            Next
+                            &#9654; {/* Solid Right Triangle */}
                         </button>
                     </div>
                 </>

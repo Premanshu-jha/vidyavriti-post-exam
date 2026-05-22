@@ -57,10 +57,23 @@
     background-color: #6c757d;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 8px 12px;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #5a6268;
+}
+
+.btn-secondary:disabled {
+    background-color: #ced4da;
+    cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .pagination-controls {
@@ -69,6 +82,12 @@
     gap: 15px;
     margin-top: 20px;
     align-items: center;
+}
+
+.page-indicator {
+    font-weight: 500;
+    color: #495057;
+    line-height: 1;
 }
 
 .status-message {
