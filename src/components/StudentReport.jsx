@@ -24,7 +24,7 @@ const StudentReport = () => {
     return (
         <div className="dashboard-container">
             <button className="btn-secondary" onClick={() => navigate(-1)}>
-                &larr; Back to Dashboard
+                &#9664; Back to Dashboard
             </button>
             
             <h2>Exam Report</h2>
