@@ -48,7 +48,7 @@ const StudentList = () => {
                                 <th>Class</th>
                                 <th>City</th>
                                 <th>Phone</th>
-                                <th>Action</th>
+                                <th>Report</th>
                             </tr>
                         </thead>
                         <tbody>
