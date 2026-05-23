@@ -245,6 +245,7 @@
     display: flex;
     align-items: center;
     gap: 20px;
+    flex-wrap:wrap;
 }
 
 .accordion-title-area h3 {

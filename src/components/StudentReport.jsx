@@ -11,9 +11,22 @@ const StudentReport = () => {
     const [openIndex, setOpenIndex] = useState(0); 
 
     useEffect(() => {
+        
+        const cacheKey = `student_report_${id}`;
+
+        const cachedData = sessionStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            setReports(JSON.parse(cachedData));
+            setLoading(false);
+            return; 
+        }
+        setLoading(true);
+
         fetch(`/students/${id}/report`)
             .then(res => res.json())
             .then(data => {
+                sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 setReports(data);
                 setLoading(false);
             })
@@ -86,7 +99,6 @@ const StudentReport = () => {
                                     </div>
                                 </button>
 
-                                {/* EXACT FIX: Removed the && logic and added the wrapper classes! */}
                                 <div className={`accordion-body-wrapper ${openIndex === index ? 'open' : ''}`}>
                                     <div className="accordion-body-inner">
                                         <div className="accordion-body">
