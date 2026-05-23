@@ -3,18 +3,37 @@ import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const StudentList = () => {
-    const [students, setStudents] = useState([]);
-    const [pageNumber, setPageNumber] = useState(0); 
+    // 1. Initialize pageNumber directly from the browser's memory
+    const [pageNumber, setPageNumber] = useState(() => {
+        const savedPage = sessionStorage.getItem('dashboard_pageNumber');
+        const parsed = parseInt(savedPage, 10);
+        return isNaN(parsed) ? 0 : parsed;
+    }); 
+    
     const [pageSize] = useState(10);
+    const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
     useEffect(() => {
+        sessionStorage.setItem('dashboard_pageNumber', pageNumber.toString());
+
+        const cacheKey = `student_data_page_${pageNumber}_size_${pageSize}`;
+
+        const cachedData = sessionStorage.getItem(cacheKey);
+
+        if (cachedData) {
+            setStudents(JSON.parse(cachedData));
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
 
         fetch(`/students?pageNumber=${pageNumber}&pageSize=${pageSize}`)
             .then(res => res.json())
             .then(data => {
+                sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 setStudents(data);
                 setLoading(false);
             })
@@ -79,7 +98,7 @@ const StudentList = () => {
                             onClick={() => setPageNumber(prev => prev - 1)}
                             title="Previous Page"
                         >
-                            &#9664; {/* Solid Left Triangle */}
+                            &#9664;
                         </button>
                         
                         <span className="page-indicator">Page {pageNumber + 1}</span>
@@ -90,7 +109,7 @@ const StudentList = () => {
                             onClick={() => setPageNumber(prev => prev + 1)}
                             title="Next Page"
                         >
-                            &#9654; {/* Solid Right Triangle */}
+                            &#9654;
                         </button>
                     </div>
                 </>
