@@ -30,7 +30,7 @@ const StudentList = () => {
 
         setLoading(true);
 
-        fetch(`/students?pageNumber=${pageNumber}&pageSize=${pageSize}`)
+        fetch(`/api/students?pageNumber=${pageNumber}&pageSize=${pageSize}`)
             .then(res => res.json())
             .then(data => {
                 sessionStorage.setItem(cacheKey, JSON.stringify(data));
