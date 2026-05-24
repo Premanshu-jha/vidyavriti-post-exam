@@ -6,12 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       
-      '/chat': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-        secure: false
-      },
-      '/students':{
+      '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false

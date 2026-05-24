@@ -1,33 +1,60 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import './ChatStreaming.css'; 
+import './ChatStreaming.css';
+import remarkGfm from 'remark-gfm';
 
 const ChatStreaming = () => {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
+    const messagesEndRef = useRef(null);
 
-    // 1. Fetch History ONCE on page load
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
     useEffect(() => {
-        fetch('/chat/1/chat-history')
+        scrollToBottom();
+    }, [messages]);
+
+    useEffect(() => {
+        fetch('/api/chat/1/chat-history')
             .then(res => res.json())
             .then(data => setMessages(data))
             .catch(err => console.error("Failed to load history:", err));
     }, []);
 
+    const formatTime = (timestamp) => {
+        if (!timestamp) return "Unknown Time";
+        try {
+            const date = new Date(timestamp);
+            if (isNaN(date)) return timestamp;
+
+            // toLocaleString keeps the date!
+            return date.toLocaleString([], {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return timestamp;
+        }
+    };
+
     const askQuestion = () => {
         if (!inputValue.trim() || isStreaming) return;
 
         const userPrompt = inputValue;
-        setInputValue(""); // Clear input box instantly
+        const currentTime = new Date().toISOString();
+
+        setInputValue("");
         setIsStreaming(true);
 
-        // 2. THE EFFICIENT WAY: Instantly update React state!
-        // We push the User's message, AND an empty Assistant placeholder.
         setMessages(prev => [
             ...prev,
-            { type: 'USER', content: userPrompt },
-            { type: 'ASSISTANT', content: '' } // This is what we will stream into!
+            { type: 'USER', content: userPrompt, timestamp: currentTime },
+            { type: 'ASSISTANT', content: '', timestamp: currentTime }
         ]);
 
         const url = `/chat/claude/1/stream-chat?q=${encodeURIComponent(userPrompt)}`;
@@ -35,12 +62,11 @@ const ChatStreaming = () => {
 
         eventSource.onmessage = (event) => {
             const formattedChunk = event.data.replace(/\\n/g, '\n');
-            
-            // 3. Append chunks to the LAST element in the messages array
+
             setMessages(prev => {
                 const newArray = [...prev];
                 const lastIndex = newArray.length - 1;
-                
+
                 newArray[lastIndex] = {
                     ...newArray[lastIndex],
                     content: newArray[lastIndex].content + formattedChunk
@@ -57,34 +83,55 @@ const ChatStreaming = () => {
 
     return (
         <div className="chat-container">
-            {/* The Chat History Window */}
             <div className="chat-history">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message message-${msg.type}`}>
-                        {/* If it's the user, just show text. If AI/System, parse Markdown */}
-                        {msg.type === 'USER' ? (
-                            msg.content
-                        ) : (
-                            <ReactMarkdown>{msg.content}</ReactMarkdown>
-                        )}
+
+                        <div className="message-header">
+                            {formatTime(msg.timestamp)}
+                        </div>
+
+                        <div className="message-content">
+                            {msg.type === 'USER' ? (
+                                msg.content || msg.text || msg.prompt || "⚠️ No content found. Check backend key!"
+                            ) : (
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                            )}
+                        </div>
+
                     </div>
                 ))}
+                <div ref={messagesEndRef} />
             </div>
 
-            {/* The Input Area */}
             <div className="chat-input-area">
-                <input 
-                    type="text" 
+                <textarea
                     className="chat-input"
                     value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && askQuestion()}
-                    placeholder="Ask about a student or exam..."
+                    onChange={(e) => {
+                        setInputValue(e.target.value);
+                        e.target.style.height = 'auto';
+                        e.target.style.height = `${e.target.scrollHeight}px`;
+                    }}
+                    onKeyDown={(e) => {
+                        // Send on Enter, but allow Shift+Enter for new lines
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault(); // Prevents the enter key from typing a new line
+                            askQuestion();
+                            // Reset height back to default after sending
+                            e.target.style.height = 'auto';
+                        }
+                    }}
+                    placeholder="Ask anything!"
                     disabled={isStreaming}
+                    rows="1"
                 />
-                <button 
-                    className="chat-button" 
-                    onClick={askQuestion} 
+                <button
+                    className="chat-button"
+                    onClick={() => {
+                        askQuestion();
+                        document.querySelector('.chat-input').style.height = 'auto';
+                    }}
                     disabled={isStreaming}
                 >
                     {isStreaming ? "Typing..." : "Send"}
