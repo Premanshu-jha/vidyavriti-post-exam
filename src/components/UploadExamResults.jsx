@@ -3,16 +3,37 @@ import './Dashboard.css';
 import './UploadExamResults.css';
 
 const UploadExamResults = () => {
+    // 1. New UI States
+    const [examType, setExamType] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
+    
+    // 2. New Backend Data States
+    const [examIdentifier, setExamIdentifier] = useState("");
+    const [isUploadSuccess, setIsUploadSuccess] = useState(false);
+
+    // 3. Process States
     const [statusMessage, setStatusMessage] = useState("");
     const [isUploading, setIsUploading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     
     const fileInputRef = useRef(null);
 
+    const handleExamTypeChange = (e) => {
+        setExamType(e.target.value);
+        
+        setSelectedFile(null);
+        setExamIdentifier("");
+        setIsUploadSuccess(false);
+        setStatusMessage("");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
     const handleFileChange = (e) => {
         const file = e.target.files[0];
         
+        setIsUploadSuccess(false);
+        setExamIdentifier("");
+
         if (!file) {
             setSelectedFile(null);
             return;
@@ -33,8 +54,8 @@ const UploadExamResults = () => {
     };
 
     const handleUpload = () => {
-        if (!selectedFile) {
-            setStatusMessage("⚠️ Please select a valid file first.");
+        if (!selectedFile || !examType) {
+            setStatusMessage("⚠️ Please select an Exam Type and a valid file first.");
             return;
         }
 
@@ -44,30 +65,44 @@ const UploadExamResults = () => {
         const formData = new FormData();
         formData.append("file", selectedFile);
 
-        fetch('/api/file/upload', {
+        const uploadUrl = `/api/file/${encodeURIComponent(examType)}/upload`;
+
+        fetch(uploadUrl, {
             method: 'POST',
             body: formData, 
         })
-        .then(res => {
-            if (!res.ok) throw new Error("Upload failed");
-            return res.text(); 
+        .then(async res => {
+            if (!res.ok) {
+                const errText = await res.text();
+                throw new Error(errText || "Upload failed");
+            }
+            return res.json(); 
         })
         .then(data => {
-            setStatusMessage("✅ File uploaded successfully! Ready for database processing.");
+            setExamIdentifier(data.examIdentifier);
+            setIsUploadSuccess(true);
+            setStatusMessage(`✅ File uploaded successfully! (ID: ${data.examIdentifier}). Ready for database processing.`);
             setIsUploading(false);
         })
         .catch(err => {
             console.error(err);
-            setStatusMessage("❌ Error uploading file.");
+            setStatusMessage(`❌ Error uploading file: ${err.message}`);
             setIsUploading(false);
         });
     };
 
     const handleBulkUpdate = () => {
+        if (!examType || !examIdentifier) {
+            setStatusMessage("⚠️ Missing Exam parameters. Please upload the file again.");
+            return;
+        }
+
         setIsProcessing(true);
         setStatusMessage("Processing data and updating database. This may take a moment...");
 
-        fetch('/api/file/bulk-update', {
+        const bulkUrl = `/api/file/${encodeURIComponent(examType)}/${encodeURIComponent(examIdentifier)}/bulk-update`;
+
+        fetch(bulkUrl, {
             method: 'POST'
         })
         .then(res => {
@@ -77,8 +112,11 @@ const UploadExamResults = () => {
         .then(message => {
             setStatusMessage(`🎉 Success: ${message}`);
             setIsProcessing(false);
-            
+            sessionStorage.clear();
+            setExamType("");
             setSelectedFile(null);
+            setExamIdentifier("");
+            setIsUploadSuccess(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
         })
         .catch(err => {
@@ -88,6 +126,7 @@ const UploadExamResults = () => {
         });
     };
 
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
@@ -96,39 +135,62 @@ const UploadExamResults = () => {
             
             <div className="exam-card uploader-card">
                 
-                <div className="upload-dropzone">
+            
+                <div className="form-group">
+                    <label htmlFor="examType" className="input-label">1. Select Exam Type</label>
+                    <select 
+                        id="examType" 
+                        className="styled-select" 
+                        value={examType} 
+                        onChange={handleExamTypeChange}
+                        disabled={isUploading || isProcessing}
+                    >
+                        <option value="" disabled>-- Choose an Exam --</option>
+                        <option value="JEE-MAINS">JEE-MAINS</option>
+                        <option value="JEE-ADVANCED">JEE-ADVANCED</option>
+                        <option value="EAPCET">EAPCET</option>
+                    </select>
+                </div>
+
+                <div className={`upload-dropzone ${!examType ? 'disabled-zone' : ''}`}>
+                    <label className="input-label">2. Upload Result CSV</label>
                     <input 
                         type="file" 
                         accept=".csv" 
                         onChange={handleFileChange}
                         className="file-input"
                         ref={fileInputRef}
+                        disabled={!examType || isUploading || isProcessing}
                     />
                     <br />
                     <button 
                         className="btn-primary" 
                         onClick={handleUpload} 
-                        disabled={!selectedFile || isUploading || isProcessing}
+                        // Disabled if no file OR uploading/processing OR already uploaded
+                        disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}
                     >
-                        {isUploading ? "Uploading... ⏳" : "1. Upload CSV to Server"}
+                        {isUploading ? "Uploading... ⏳" : "Upload to Server"}
                     </button>
                 </div>
 
-                <div className="process-section">
+    
+                <div className={`process-section ${!isUploadSuccess ? 'disabled-zone' : ''}`}>
+                    <label className="input-label">3. Synchronize Database</label>
                     <p className="process-description">
-                        After uploading, push the records to the student database.
+                        Push the validated records into the student database.
                     </p>
                     <button 
                         className="btn-success" 
                         onClick={handleBulkUpdate} 
-                        disabled={isUploading || isProcessing}
+                        // Strictly disabled until the upload is 100% finished
+                        disabled={!isUploadSuccess || isUploading || isProcessing}
                     >
-                        {isProcessing ? "Processing Data... ⏳" : "2. Push Data to Database"}
+                        {isProcessing ? "Processing Data... ⏳" : "Push Data to Database"}
                     </button>
                 </div>
 
                 {statusMessage && (
-                    <div className="status-message">
+                    <div className={`status-message ${statusMessage.includes('❌') ? 'error' : ''}`}>
                         <strong>{statusMessage}</strong>
                     </div>
                 )}
