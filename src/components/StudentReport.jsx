@@ -23,7 +23,7 @@ const StudentReport = () => {
         }
         setLoading(true);
 
-        fetch(`/students/${id}/report`)
+        fetch(`/api/students/${id}/report`)
             .then(res => res.json())
             .then(data => {
                 sessionStorage.setItem(cacheKey, JSON.stringify(data));
