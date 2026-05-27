@@ -112,12 +112,20 @@ const UploadExamResults = () => {
         .then(message => {
             setStatusMessage(`🎉 Success: ${message}`);
             setIsProcessing(false);
-            sessionStorage.clear();
             setExamType("");
             setSelectedFile(null);
             setExamIdentifier("");
             setIsUploadSuccess(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
+
+            const keysToRemove = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const key = sessionStorage.key(i);
+                if (key && (key.startsWith('student_data_page_') || key.startsWith('student_report_'))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => sessionStorage.removeItem(key));
         })
         .catch(err => {
             console.error(err);
