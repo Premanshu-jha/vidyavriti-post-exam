@@ -1,0 +1,314 @@
+.exam-card {
+    margin-bottom: 40px;
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.exam-header {
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+
+.exam-header h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.exam-meta {
+    display: flex;
+    gap: 20px;
+    color: #555;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+}
+
+/* Makes the table scroll horizontally on small screens */
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Prevents the table columns from crushing together */
+.table-nowrap {
+    white-space: nowrap;
+}
+
+/* Utility classes for grading colors */
+.text-success {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.text-danger {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* The highlighted summary row at the bottom */
+.summary-row {
+    background-color: #f8f9fa;
+    border-top: 2px solid #dee2e6;
+}
+
+.summary-row td {
+    font-weight: bold;
+}
+
+.summary-score {
+    font-size: 1.1rem;
+}
+
+/* --- Student Profile Header --- */
+.student-profile-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 30px 40px;
+    border-radius: 12px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.25);
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.profile-main h1 {
+    margin: 0 0 12px 0;
+    font-size: 2.2rem;
+    letter-spacing: 0.5px;
+}
+
+.profile-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+}
+
+.profile-details {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.profile-detail-item {
+    background: rgba(0, 0, 0, 0.15);
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* --- Accordion Styles --- */
+
+.accordion-item {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 15px;
+    overflow: hidden; /* Ensures the header stays rounded */
+}
+
+.accordion-header {
+    width: 100%;
+    padding: 20px 25px;
+    background: #ffffff;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    text-align: left;
+    outline: none;
+}
+
+.accordion-header:hover {
+    background-color: #f8f9fa;
+}
+
+.accordion-title-area {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap:wrap;
+}
+
+.accordion-title-area h3 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: #333;
+}
+
+.accordion-summary-tags {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.accordion-icon {
+    font-size: 1.2rem;
+    color: #007bff;
+    font-weight: bold;
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+.accordion-icon.open {
+    transform: rotate(90deg);
+}
+
+.accordion-body {
+    padding: 10px 25px 25px 25px;
+    border-top: 1px solid #eee;
+}
+
+.accordion-body-wrapper {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.accordion-body-wrapper.open {
+    grid-template-rows: 1fr;
+}
+
+.accordion-body-wrapper.open .accordion-body-inner {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.accordion-body-inner {
+    min-height: 0;
+    overflow: hidden; 
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+}
+
+.rank-badge-header {
+    background: #e7f1ff;
+    color: #007bff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.accordion-meta {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+/* --- TABS UI --- */
+.exam-tabs-container {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    overflow-x: auto; 
+    padding-bottom: 8px;
+}
+
+.exam-tab {
+    padding: 10px 20px;
+    background-color: #e2e8f0;
+    color: #475569;
+    border: none;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.exam-tab:hover {
+    background-color: #cbd5e1;
+}
+
+.exam-tab.active {
+    background-color: #0f172a;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* --- MINI TREND CHART --- */
+.trend-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.trend-card h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #334155;
+    font-size: 1.1rem;
+}
+
+.css-bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    height: 180px; 
+    padding-top: 20px;
+    border-bottom: 2px solid #e2e8f0;
+    overflow-x: auto;
+}
+
+.bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 60px;
+    max-width: 100px;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    transition: height 0.5s ease-out;
+}
+
+.bar-tooltip {
+    position: absolute;
+    top: -24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: #475569;
+    white-space: nowrap;
+}
+
+.bar-label {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}

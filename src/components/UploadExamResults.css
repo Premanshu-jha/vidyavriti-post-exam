@@ -100,3 +100,37 @@
     transition: opacity 0.3s ease;
 }
 
+.hidden-file-input {
+    display: none;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: #475569;
+    border: 2px dashed #cbd5e1;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-outline:hover:not(:disabled) {
+    border-color: #3b82f6;
+    color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+.btn-outline:disabled {
+    background-color: #f8fafc;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-style: solid;
+}
