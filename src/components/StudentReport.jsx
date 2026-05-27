@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
+import './StudentReport.css'; 
 
 const StudentReport = () => {
     const { id } = useParams(); 
@@ -8,19 +9,23 @@ const StudentReport = () => {
     const [reports, setReports] = useState([]); 
     const [loading, setLoading] = useState(true);
     
-    const [openIndex, setOpenIndex] = useState(0); 
+    // UI States
+    // 💥 Change this to an array
+    const [openIndices, setOpenIndices] = useState([0]);
+    const [activeTab, setActiveTab] = useState(""); 
 
     useEffect(() => {
-        
         const cacheKey = `student_report_${id}`;
-
         const cachedData = sessionStorage.getItem(cacheKey);
 
         if (cachedData) {
-            setReports(JSON.parse(cachedData));
+            const parsedData = JSON.parse(cachedData);
+            setReports(parsedData);
+            initializeTabs(parsedData);
             setLoading(false);
             return; 
         }
+        
         setLoading(true);
 
         fetch(`/api/students/${id}/report`)
@@ -28,6 +33,7 @@ const StudentReport = () => {
             .then(data => {
                 sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 setReports(data);
+                initializeTabs(data);
                 setLoading(false);
             })
             .catch(err => {
@@ -36,26 +42,40 @@ const StudentReport = () => {
             });
     }, [id]);
 
+    const initializeTabs = (data) => {
+        if (data && data.length > 0) {
+            // Extract unique exam types, fallback to 'Uncategorized' if missing
+            const types = [...new Set(data.map(r => r.exam.examType || 'Uncategorized'))];
+            setActiveTab(types[0]);
+        }
+    };
+
     const toggleAccordion = (index) => {
-        setOpenIndex(openIndex === index ? null : index);
+        setOpenIndices(prevIndices => 
+            prevIndices.includes(index)
+                ? prevIndices.filter(i => i !== index) // Close it if it's already open
+                : [...prevIndices, index]              // Open it by adding to the array
+        );
     };
 
     const studentInfo = reports.length > 0 ? reports[0].student : null;
 
+    // Extract unique exam types for the Navigation Tabs
+    const availableExamTypes = [...new Set(reports.map(r => r.exam.examType || 'Uncategorized'))];
+
+    // Filter reports to only show those matching the active tab
+    const filteredReports = reports.filter(r => (r.exam.examType || 'Uncategorized') === activeTab);
+
     return (
         <div className="dashboard-container">
             <button className="btn-secondary" onClick={() => navigate(-1)}>
-                &#9664; Back to Dashboard
+                &#9664; Back to Directory
             </button>
 
             {loading ? (
-                <div className="status-message">
-                    <p>Loading exam data... ⏳</p>
-                </div>
+                <div className="status-message"><p>Loading exam data... ⏳</p></div>
             ) : reports.length === 0 ? (
-                <div className="status-message">
-                    <p>No exams found for this student.</p>
-                </div>
+                <div className="status-message"><p>No exams found for this student.</p></div>
             ) : (
                 <>
                     {studentInfo && (
@@ -72,34 +92,86 @@ const StudentReport = () => {
                         </div>
                     )}
 
-                    <h2>Exam History</h2>
+                    
+                    <div className="exam-tabs-container">
+                        {availableExamTypes.map(type => (
+                            <button 
+                                key={type}
+                                className={`exam-tab ${activeTab === type ? 'active' : ''}`}
+                                onClick={() => {
+                                    setActiveTab(type);
+                                    setOpenIndices([0]); // Safely reset accordion to first item
+                                }}
+                            >
+                                {type}
+                            </button>
+                        ))}
+                    </div>
 
-                    {reports.map((report, index) => {
+                    {/* --- THE COMPARISON DASHBOARD --- */}
+                    {filteredReports.length > 1 && (
+                        <div className="exam-card trend-card">
+                            <h3>Performance Trend: {activeTab}</h3>
+                            <div className="css-bar-chart">
+                                {filteredReports.map((report, idx) => {
+                                    const percentage = Math.max(0, (report.totalMarks / report.exam.examTotalMarks) * 100);
+                                    return (
+                                        <div key={idx} className="bar-wrapper">
+                                            <div className="bar-fill" style={{ height: `${percentage}%` }}>
+                                                <span className="bar-tooltip">{report.totalMarks} / {report.exam.examTotalMarks}</span>
+                                            </div>
+                                            <span className="bar-label">{report.exam.examIdentifier}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    <h2>{activeTab} Detailed History</h2>
+
+                    {/* --- THE FILTERED ACCORDIONS --- */}
+                    {filteredReports.map((report, index) => {
                         const examDate = report.examStartTime ? report.examStartTime.split(' ')[0] : 'N/A';
                         const startTime = report.examStartTime ? report.examStartTime.split(' ')[1] : 'N/A';
                         const endTime = report.examEndTime ? report.examEndTime.split(' ')[1] : 'N/A';
 
+                        // Dynamic Subject Configuration
+                        const symbolMap = {
+                            physics: "⚛️",
+                            maths: "📐",
+                            chemistry: "🧪",
+                            biology: "🧬",
+                            botany: "🌿",
+                            zoology: "🦁"
+                        };
+
+                        const dynamicSubjects = Object.keys(report)
+                            .filter(key => key.endsWith('AttemptedQuestions') && key !== 'totalAttemptedQuestions')
+                            .map(key => {
+                                const prefix = key.replace('AttemptedQuestions', ''); 
+                                return {
+                                    prefix: prefix,
+                                    name: prefix.charAt(0).toUpperCase() + prefix.slice(1), 
+                                    symbol: symbolMap[prefix] || "📝" 
+                                };
+                            });
+
                         return (
                             <div key={index} className="accordion-item">
-                                
-                                <button 
-                                    className="accordion-header" 
-                                    onClick={() => toggleAccordion(index)}
-                                >
+                                <button className="accordion-header" onClick={() => toggleAccordion(index)}>
                                     <div className="accordion-title-area">
-                                        <span className={`accordion-icon ${openIndex === index ? 'open' : ''}`}>
-                                            &#9654;
-                                        </span>
-                                        <h3>Exam: {report.exam.examIdentifier}</h3>
+                                        <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}>&#9654;</span>
+                                        <h3>{report.exam.examIdentifier}</h3>
                                         <div className="accordion-summary-tags">
-                                            <span>🗓️ Date: {examDate}</span>
+                                            <span>🗓️ {examDate}</span>
                                             <span className="rank-badge-header">Rank: #{report.rank}</span>
                                             <span>Score: {report.totalMarks}/{report.exam.examTotalMarks}</span>
                                         </div>
                                     </div>
                                 </button>
 
-                                <div className={`accordion-body-wrapper ${openIndex === index ? 'open' : ''}`}>
+                                <div className={`accordion-body-wrapper ${openIndices.includes(index) ? 'open' : ''}`}>
                                     <div className="accordion-body-inner">
                                         <div className="accordion-body">
                                             
@@ -129,58 +201,26 @@ const StudentReport = () => {
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        {/* Physics Row */}
-                                                        <tr>
-                                                            <td><strong>⚛️ Physics</strong></td>
-                                                            <td>{report.physicsAttemptedQuestions}</td>
-                                                            <td className="text-success">{report.physicsCorrectAnswers}</td>
-                                                            <td className="text-danger">{report.physicsWrongAnswers}</td>
-                                                            <td className="text-success">+{report.physicsPositiveMarks}</td>
-                                                            <td className="text-danger">{report.physicsNegativeMarks}</td>
-                                                            <td className={report.physicsMarksScored < 0 ? 'text-danger' : ''}>
-                                                                {report.physicsMarksScored}
-                                                            </td>
-                                                            <td>{report.exam.physicsTotalMarks}</td>
-                                                            <td>{report.physicsTotalTimeSpent}</td>
-                                                            <td>{report.physicsAvgTimeEachQuestion}</td>
-                                                            <td>#{report.physicsRank}</td>
-                                                        </tr>
+                                                        {/* Dynamically Generated Subject Rows */}
+                                                        {dynamicSubjects.map(({ name, prefix, symbol }) => (
+                                                            <tr key={prefix}>
+                                                                <td><strong>{symbol} {name}</strong></td>
+                                                                <td>{report[`${prefix}AttemptedQuestions`]}</td>
+                                                                <td className="text-success">{report[`${prefix}CorrectAnswers`]}</td>
+                                                                <td className="text-danger">{report[`${prefix}WrongAnswers`]}</td>
+                                                                <td className="text-success">+{report[`${prefix}PositiveMarks`]}</td>
+                                                                <td className="text-danger">{report[`${prefix}NegativeMarks`]}</td>
+                                                                <td className={report[`${prefix}MarksScored`] < 0 ? 'text-danger' : ''}>
+                                                                    {report[`${prefix}MarksScored`]}
+                                                                </td>
+                                                                <td>{report.exam[`${prefix}TotalMarks`]}</td>
+                                                                <td>{report[`${prefix}TotalTimeSpent`]}</td>
+                                                                <td>{report[`${prefix}AvgTimeEachQuestion`]}</td>
+                                                                <td>#{report[`${prefix}Rank`]}</td>
+                                                            </tr>
+                                                        ))}
 
-                                                        {/* Maths Row */}
-                                                        <tr>
-                                                            <td><strong>📐 Maths</strong></td>
-                                                            <td>{report.mathsAttemptedQuestions}</td>
-                                                            <td className="text-success">{report.mathsCorrectAnswers}</td>
-                                                            <td className="text-danger">{report.mathsWrongAnswers}</td>
-                                                            <td className="text-success">+{report.mathsPositiveMarks}</td>
-                                                            <td className="text-danger">{report.mathsNegativeMarks}</td>
-                                                            <td className={report.mathsMarksScored < 0 ? 'text-danger' : ''}>
-                                                                {report.mathsMarksScored}
-                                                            </td>
-                                                            <td>{report.exam.mathsTotalMarks}</td>
-                                                            <td>{report.mathsTotalTimeSpent}</td>
-                                                            <td>{report.mathsAvgTimeEachQuestion}</td>
-                                                            <td>#{report.mathsRank}</td>
-                                                        </tr>
-
-                                                        {/* Chemistry Row */}
-                                                        <tr>
-                                                            <td><strong>🧪 Chemistry</strong></td>
-                                                            <td>{report.chemistryAttemptedQuestions}</td>
-                                                            <td className="text-success">{report.chemistryCorrectAnswers}</td>
-                                                            <td className="text-danger">{report.chemistryWrongAnswers}</td>
-                                                            <td className="text-success">+{report.chemistryPositiveMarks}</td>
-                                                            <td className="text-danger">{report.chemistryNegativeMarks}</td>
-                                                            <td className={report.chemistryMarksScored < 0 ? 'text-danger' : ''}>
-                                                                {report.chemistryMarksScored}
-                                                            </td>
-                                                            <td>{report.exam.chemistryTotalMarks}</td>
-                                                            <td>{report.chemistryTotalTimeSpent}</td>
-                                                            <td>{report.chemistryAvgTimeEachQuestion}</td>
-                                                            <td>#{report.chemistryRank}</td>
-                                                        </tr>
-
-                                                        {/* Overall Summary Row */}
+                                                        {/* Hardcoded Overall Summary Row */}
                                                         <tr className="summary-row">
                                                             <td>🏆 OVERALL</td>
                                                             <td>{report.totalAttemptedQuestions}</td>

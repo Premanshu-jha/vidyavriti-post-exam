@@ -126,6 +126,7 @@ const UploadExamResults = () => {
                 }
             }
             keysToRemove.forEach(key => sessionStorage.removeItem(key));
+            sessionStorage.removeItem("dashboard_pageNumber");
         })
         .catch(err => {
             console.error(err);
@@ -166,10 +167,23 @@ const UploadExamResults = () => {
                         type="file" 
                         accept=".csv" 
                         onChange={handleFileChange}
-                        className="file-input"
+                        className="hidden-file-input"
                         ref={fileInputRef}
                         disabled={!examType || isUploading || isProcessing}
                     />
+                    <button 
+                        className="btn-outline"
+                        onClick={() => fileInputRef.current.click()} 
+                        disabled={!examType || isUploading || isProcessing}
+                    >
+                        📂 Browse for File...
+                    </button>
+                    
+                    {selectedFile && (
+                        <div className="selected-file-display">
+                            📄 <strong>Selected:</strong> {selectedFile.name}
+                        </div>
+                    )}
                     <br />
                     <button 
                         className="btn-primary" 
