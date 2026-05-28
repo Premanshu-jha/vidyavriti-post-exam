@@ -1,3 +1,4 @@
+/* --- Generic Layout & Table Styles --- */
 .exam-card {
     margin-bottom: 40px;
     background: white;
@@ -26,17 +27,14 @@
     flex-wrap: wrap;
 }
 
-/* Makes the table scroll horizontally on small screens */
 .table-responsive {
     overflow-x: auto;
 }
 
-/* Prevents the table columns from crushing together */
 .table-nowrap {
     white-space: nowrap;
 }
 
-/* Utility classes for grading colors */
 .text-success {
     color: #28a745;
     font-weight: bold;
@@ -47,7 +45,6 @@
     font-weight: bold;
 }
 
-/* The highlighted summary row at the bottom */
 .summary-row {
     background-color: #f8f9fa;
     border-top: 2px solid #dee2e6;
@@ -110,13 +107,12 @@
 }
 
 /* --- Accordion Styles --- */
-
 .accordion-item {
     background: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     margin-bottom: 15px;
-    overflow: hidden; /* Ensures the header stays rounded */
+    overflow: hidden;
 }
 
 .accordion-header {
@@ -140,7 +136,7 @@
     display: flex;
     align-items: center;
     gap: 20px;
-    flex-wrap:wrap;
+    flex-wrap: wrap;
 }
 
 .accordion-title-area h3 {
@@ -245,13 +241,96 @@
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-/* --- MINI TREND CHART --- */
+/* --- AVERAGES SUMMARY DASHBOARD --- */
+.averages-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+.average-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.overall-avg {
+    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+    color: white;
+    border: none;
+}
+
+.overall-avg h4, .overall-avg .max-score, .overall-avg .avg-percent {
+    color: #cbd5e1 !important;
+}
+
+.avg-icon {
+    font-size: 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.average-card:not(.overall-avg) .avg-icon {
+    background: #f1f5f9;
+}
+
+.avg-details h4 {
+    margin: 0 0 4px 0;
+    font-size: 0.9rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.avg-score {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
+.max-score {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #94a3b8;
+}
+
+.avg-percent {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #10b981; 
+}
+
+.text-muted {
+    color: #64748b;
+}
+
+/* --- SEPARATE SUBJECT CHARTS --- */
+.charts-container {
+    display: grid;
+    /* Automatically places charts side-by-side on large screens */
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+
 .trend-card {
     background: white;
     padding: 24px;
     border-radius: 12px;
-    margin-bottom: 30px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 0; /* Reset since the grid gap handles spacing */
 }
 
 .trend-card h3 {
@@ -259,16 +338,20 @@
     margin-bottom: 20px;
     color: #334155;
     font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .css-bar-chart {
     display: flex;
     align-items: flex-end;
     gap: 20px;
-    height: 180px; 
-    padding-top: 20px;
+    height: 180px;
+    padding-top: 25px; /* Extra padding so tooltips have room */
     border-bottom: 2px solid #e2e8f0;
     overflow-x: auto;
+    padding-bottom: 8px;
 }
 
 .bar-wrapper {
@@ -277,27 +360,31 @@
     align-items: center;
     gap: 8px;
     flex: 1;
-    min-width: 60px;
-    max-width: 100px;
+    min-width: 50px;
+    max-width: 80px;
     height: 100%;
     justify-content: flex-end;
+    cursor: pointer;
 }
 
 .bar-fill {
     width: 100%;
-    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
     border-radius: 4px 4px 0 0;
     position: relative;
     transition: height 0.5s ease-out;
 }
 
+.bar-wrapper:hover .bar-fill {
+    filter: brightness(1.15);
+}
+
 .bar-tooltip {
     position: absolute;
-    top: -24px;
+    top: -22px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.8rem;
-    font-weight: bold;
+    font-size: 0.85rem;
+    font-weight: 700;
     color: #475569;
     white-space: nowrap;
 }
@@ -308,7 +395,7 @@
     font-weight: 600;
     text-align: center;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     width: 100%;
+    padding-top: 4px;
+    /* overflow: hidden removed to fix the cut-off underscores */
 }
