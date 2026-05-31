@@ -65,7 +65,7 @@ const UploadExamResults = () => {
         const formData = new FormData();
         formData.append("file", selectedFile);
 
-        const uploadUrl = `/api/file/${encodeURIComponent(examType)}/upload`;
+        const uploadUrl = `/api/file/upload?examType=${encodeURIComponent(examType)}`;
 
         fetch(uploadUrl, {
             method: 'POST',

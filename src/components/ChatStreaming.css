@@ -66,7 +66,6 @@
 
 @media (max-width: 768px) {
     .chat-container {
-        /* 💥 BULLETPROOF MOBILE LOCK */
         position: fixed;
         top: 60px; /* Locks exactly below your mobile header */
         left: 0;
@@ -162,7 +161,6 @@
 }
 /* 3. THE BUTTON */
 .chat-button {
-    /* 💥 Lock the button height to perfectly match the 1-line textarea */
     height: 46px; 
     padding: 0 24px;
     background-color: #28a745;
@@ -199,8 +197,6 @@
     border: 1px solid #cbd5e1;
     padding: 8px;
     text-align: left;
-    
-    /* 💥 THE FIX: Forces long text inside cells to wrap onto new lines! */
     white-space: normal;
     overflow-wrap: break-word; 
 }
@@ -213,4 +209,95 @@
     padding: 12px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
+}
+
+/* Container enclosing the text box and the file attachment chips */
+.chat-input-container {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: #ffffff;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Pending file chip layout */
+.pending-file-preview {
+    display: inline-flex;
+    align-items: center;
+    background-color: #f1f3f4;
+    padding: 6px 12px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    align-self: flex-start;
+    font-size: 0.85rem;
+}
+
+.pending-file-name {
+    margin-right: 12px;
+    max-width: 100%;
+    /* 💥 Cleaned up: Removed overflow: hidden and text-overflow: ellipsis */
+    white-space: normal; 
+    overflow-wrap: anywhere;
+}
+
+.remove-file-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.remove-file-btn:hover {
+    color: #333;
+}
+
+/* Attach button formatting */
+.attach-button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    color: #666;
+}
+
+.attach-button:hover {
+    color: #111;
+}
+
+/* Rendering the chip inside historical chat messages */
+.message-file-attachment {
+    display: flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    max-width: 100%; /* Let it expand fully if needed */
+}
+
+.file-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.file-size {
+    font-size: 0.75rem;
+    color: #666;
 }
