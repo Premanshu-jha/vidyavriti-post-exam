@@ -125,7 +125,7 @@ const ChatStreaming = () => {
 
             }
 
-            const url = `/api/chat/claude/1/stream-chat?q=${encodeURIComponent(userPrompt)}`;
+            const url = `/api/chat/1/stream-chat?q=${encodeURIComponent(userPrompt)}`;
             const eventSource = new EventSource(url);
 
             eventSource.onmessage = (event) => {
