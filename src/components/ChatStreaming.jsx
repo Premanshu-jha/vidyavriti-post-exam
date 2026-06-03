@@ -123,7 +123,6 @@ const ChatStreaming = () => {
                     throw new Error("Document ingestion failed");
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 1500));
             }
 
             const url = `/api/chat/claude/1/stream-chat?q=${encodeURIComponent(userPrompt)}`;
@@ -148,9 +147,21 @@ const ChatStreaming = () => {
             };
 
         } catch (error) {
-            console.error("Error in upload/stream pipeline:", error);
-            // ... (error handling stays the same)
-        }
+           console.error("Error in upload/stream pipeline:", error);
+            
+            setMessages(prev => {
+                const newArray = [...prev];
+                const lastIndex = newArray.length - 1;
+                
+                newArray[lastIndex] = {
+                    ...newArray[lastIndex],
+                    content: `❌ **Error:** ${error.message || "Something went wrong. Please try again."}`
+                };
+                
+                return newArray;
+            });
+
+            setIsStreaming(false);
     };
 
     return (
