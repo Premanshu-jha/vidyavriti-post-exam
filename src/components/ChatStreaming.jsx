@@ -162,6 +162,7 @@ const ChatStreaming = () => {
             });
 
             setIsStreaming(false);
+        }
     };
 
     return (
