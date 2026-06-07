@@ -1,0 +1,202 @@
+/* --- Core Color Palette matched to Vidyavriti Logo --- */
+:root {
+    --primary-dark: #0b2241;   /* Deep Navy from the book/cap */
+    --primary-teal: #199fa6;   /* Vibrant Teal from the person/stars */
+    --accent-green: #3ab55b;   /* Growth Green from the chart */
+    --bg-light: #f4f7f6;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --error-red: #d9534f;
+    --white: #ffffff;
+}
+
+/* --- Container & Card --- */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-light);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+.login-card {
+    background-color: var(--white);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(11, 34, 65, 0.08);
+    width: 100%;
+    max-width: 400px;
+    border-top: 5px solid var(--primary-teal);
+}
+
+/* --- Header & Branding --- */
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.login-logo {
+    width: 120px;
+    height: auto;
+    margin-bottom: 15px;
+    border-radius: 8px; 
+}
+
+.login-header h2 {
+    color: var(--primary-dark);
+    margin: 0 0 5px 0;
+    font-size: 24px;
+}
+
+.login-header p {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 14px;
+}
+
+/* --- Forms & Inputs --- */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.input-group label {
+    font-weight: 600;
+    color: var(--primary-dark);
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.input-group input {
+    padding: 12px 15px;
+    border: 1px solid #cccccc;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-teal);
+    box-shadow: 0 0 0 3px rgba(25, 159, 166, 0.1);
+}
+
+/* --- Professional OTP Boxes --- */
+.otp-input-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.otp-box {
+    width: 100%; /* Flexes equally */
+    height: 60px;
+    text-align: center;
+    font-size: 24px !important;
+    font-weight: bold;
+    color: var(--primary-dark);
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    transition: all 0.3s ease;
+}
+
+.otp-box:focus {
+    outline: none;
+    border-color: var(--primary-teal);
+    background-color: var(--white);
+    box-shadow: 0 0 0 3px rgba(25, 159, 166, 0.1);
+}
+
+.otp-box:disabled {
+    background-color: #eeeeee;
+    color: #999999;
+}
+
+/* --- Timer Display Styles --- */
+.timer-display {
+    font-size: 14px;
+    color: var(--primary-dark);
+    background-color: rgba(11, 34, 65, 0.04);
+    padding: 10px;
+    border-radius: 6px;
+    text-align: center;
+    border-left: 3px solid var(--primary-teal);
+}
+
+.timer-display strong {
+    color: var(--primary-teal);
+    font-variant-numeric: tabular-nums; 
+}
+
+.timer-display.expired {
+    background-color: rgba(217, 83, 79, 0.05);
+    color: var(--error-red);
+    border-left-color: var(--error-red);
+}
+
+/* --- Buttons --- */
+.primary-btn {
+    background-color: var(--primary-dark);
+    color: var(--white);
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.primary-btn:hover:not(:disabled) {
+    background-color: var(--primary-teal);
+}
+
+.primary-btn:disabled {
+    background-color: #a0b2c6;
+    cursor: not-allowed;
+}
+
+.secondary-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 14px;
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.secondary-btn:hover:not(:disabled) {
+    color: var(--primary-dark);
+}
+
+/* --- Alerts --- */
+.alert-box {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.alert-box.error {
+    background-color: rgba(217, 83, 79, 0.1);
+    color: var(--error-red);
+    border: 1px solid rgba(217, 83, 79, 0.2);
+}
+
+.alert-box.success {
+    background-color: rgba(58, 181, 91, 0.1);
+    color: var(--accent-green);
+    border: 1px solid rgba(58, 181, 91, 0.2);
+}
