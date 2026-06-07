@@ -85,7 +85,7 @@ const UploadExamResults = () => {
             setIsUploading(false);
         })
         .catch(err => {
-            console.error(err);
+            consolrollNumbere.error(err);
             setStatusMessage(`❌ Error uploading file: ${err.message}`);
             setIsUploading(false);
         });

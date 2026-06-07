@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { fetchEventSource } from '@microsoft/fetch-event-source';
 import ReactMarkdown from 'react-markdown';
 import './ChatStreaming.css';
 import remarkGfm from 'remark-gfm';
@@ -7,11 +8,16 @@ const ChatStreaming = () => {
     const [messages, setMessages] = useState([]);
     const [inputValue, setInputValue] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
-    
     const [pendingFile, setPendingFile] = useState(null);
-    
+
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+
+    // Safely parse the session storage JSON!
+    const sessionData = JSON.parse(sessionStorage.getItem("studentSession") || "{}");
+    const { name, role, rollNo } = sessionData;
+
+    const getToken = () => sessionStorage.getItem("authToken");
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -22,49 +28,51 @@ const ChatStreaming = () => {
     }, [messages]);
 
     useEffect(() => {
-        fetch('/api/chat/1/chat-history')
+        // Attach the JWT token to fetch history
+        fetch(`/api/chat/${rollNo}/chat-history`, {
+            headers: { 'Authorization': `Bearer ${getToken()}` }
+        })
             .then(res => res.json())
             .then(data => {
+                if (data.length === 0 && role === 'STUDENT') {
+                    // Pass the string directly to askQuestion!
+                    const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
+                    askQuestion(introMessage);
+                }
+
                 const processedHistory = data.map(msg => {
                     if (msg.type === 'USER' && msg.content) {
-                        
                         const matchWithSize = msg.content.match(/^\[Attached: (.*?) \| Size: (\d+)\]\n\n/);
-                        
                         const matchOld = msg.content.match(/^\[Attached: (.*?)\]\n\n/);
-                        
+
                         if (matchWithSize) {
                             return {
                                 ...msg,
                                 content: msg.content.replace(matchWithSize[0], ''),
-                                file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) } 
+                                file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) }
                             };
                         } else if (matchOld) {
                             return {
                                 ...msg,
                                 content: msg.content.replace(matchOld[0], ''),
-                                file: { name: matchOld[1], size: null } 
+                                file: { name: matchOld[1], size: null }
                             };
                         }
                     }
                     return msg;
                 });
-                
+
                 setMessages(processedHistory);
             })
             .catch(err => console.error("Failed to load history:", err));
-    }, []);
+    }, [name, role, rollNo]);
 
     const formatTime = (timestamp) => {
         if (!timestamp) return "Unknown Time";
         try {
             const date = new Date(timestamp);
             if (isNaN(date)) return timestamp;
-            return date.toLocaleString([], {
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+            return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         } catch (e) {
             return timestamp;
         }
@@ -81,17 +89,21 @@ const ChatStreaming = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const askQuestion = async () => {
-        if ((!inputValue.trim() && !pendingFile) || isStreaming) return;
+    // Added 'overridePrompt' parameter so the auto-intro doesn't rely on React state
+    const askQuestion = async (overridePrompt = null) => {
+        // This handles cases where event object is passed by click handler accidentally
+        const isEvent = overridePrompt && typeof overridePrompt === 'object' && overridePrompt.type;
+        const textToUse = (!isEvent && overridePrompt) ? overridePrompt : inputValue;
 
-        const userPrompt = pendingFile 
-            ? `[Attached: ${pendingFile.name} | Size: ${pendingFile.size}]\n\n${inputValue}` 
-            : inputValue;
+        if ((!textToUse.trim() && !pendingFile) || isStreaming) return;
+
+        const userPrompt = pendingFile
+            ? `[Attached: ${pendingFile.name} | Size: ${pendingFile.size}]\n\n${textToUse}`
+            : textToUse;
 
         const fileToUpload = pendingFile;
         const currentTime = new Date().toISOString();
-
-        const cleanInputForUI = inputValue; 
+        const cleanInputForUI = textToUse;
 
         setInputValue("");
         setPendingFile(null);
@@ -100,11 +112,11 @@ const ChatStreaming = () => {
 
         setMessages(prev => [
             ...prev,
-            { 
-                type: 'USER', 
-                content: cleanInputForUI, 
+            {
+                type: 'USER',
+                content: cleanInputForUI,
                 timestamp: currentTime,
-                file: fileToUpload ? { name: fileToUpload.name, size: fileToUpload.size } : null 
+                file: fileToUpload ? { name: fileToUpload.name, size: fileToUpload.size } : null
             },
             { type: 'ASSISTANT', content: '', timestamp: currentTime }
         ]);
@@ -113,58 +125,65 @@ const ChatStreaming = () => {
             if (fileToUpload) {
                 const formData = new FormData();
                 formData.append("file", fileToUpload);
-                
-                const uploadResponse = await fetch('/api/chat/upload', {
+
+                // Attach JWT to the file upload
+                const uploadResponse = await fetch(`/api/chat/upload?rollNumber=${rollNo}`, {
                     method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
                     body: formData
                 });
 
-                if (!uploadResponse.ok) {
-                    throw new Error("Document ingestion failed");
-                }
-
+                if (!uploadResponse.ok) throw new Error("Document ingestion failed");
             }
 
-            const url = `/api/chat/1/stream-chat?q=${encodeURIComponent(userPrompt)}`;
-            const eventSource = new EventSource(url);
+            await fetchEventSource(`/api/chat/${rollNo}/stream-chat`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`,
+                    'Content-Type': 'application/json',
+                },
+                // Put your giant prompt in the body!
+                body: JSON.stringify({ query: userPrompt }),
 
-            eventSource.onmessage = (event) => {
-                const formattedChunk = event.data.replace(/\\n/g, '\n');
-                setMessages(prev => {
-                    const newArray = [...prev];
-                    const lastIndex = newArray.length - 1;
-                    newArray[lastIndex] = {
-                        ...newArray[lastIndex],
-                        content: newArray[lastIndex].content + formattedChunk
-                    };
-                    return newArray;
-                });
-            };
+                onmessage(event) {
+                    const formattedChunk = event.data.replace(/\\n/g, '\n');
+                    setMessages(prev => {
+                        const newArray = [...prev];
+                        const lastIndex = newArray.length - 1;
+                        newArray[lastIndex] = {
+                            ...newArray[lastIndex],
+                            content: newArray[lastIndex].content + formattedChunk
+                        };
+                        return newArray;
+                    });
+                },
+                onerror(err) {
+                    console.error("Stream error:", err);
+                    setIsStreaming(false);
+                    throw err; // Stop retrying
+                },
+                onclose() {
+                    setIsStreaming(false);
+                }
+            });
 
-            eventSource.onerror = () => {
-                eventSource.close();
-                setIsStreaming(false);
-            };
-
+        // FIXED: Re-added the missing catch block and closed the try statement
         } catch (error) {
-           console.error("Error in upload/stream pipeline:", error);
-            
+            console.error("Error in upload/stream pipeline:", error);
             setMessages(prev => {
                 const newArray = [...prev];
                 const lastIndex = newArray.length - 1;
-                
                 newArray[lastIndex] = {
                     ...newArray[lastIndex],
                     content: `❌ **Error:** ${error.message || "Something went wrong. Please try again."}`
                 };
-                
                 return newArray;
             });
-
             setIsStreaming(false);
         }
-    };
+    }; // FIXED: Properly closed the askQuestion function here
 
+    // FIXED: The return block is now safely outside the askQuestion function
     return (
         <div className="chat-container">
             <div className="chat-history">
@@ -173,9 +192,7 @@ const ChatStreaming = () => {
                         <div className="message-header">
                             {formatTime(msg.timestamp)}
                         </div>
-
                         <div className="message-content">
-
                             {msg.file && (
                                 <div className="message-file-attachment">
                                     <span className="file-icon">📄</span>
@@ -185,7 +202,6 @@ const ChatStreaming = () => {
                                     </div>
                                 </div>
                             )}
-
                             {msg.type === 'USER' ? (
                                 msg.content || "Uploaded a document."
                             ) : (
@@ -198,7 +214,6 @@ const ChatStreaming = () => {
             </div>
 
             <div className="chat-input-container">
-                
                 {pendingFile && (
                     <div className="pending-file-preview">
                         <span className="file-icon">📄</span>
@@ -206,25 +221,21 @@ const ChatStreaming = () => {
                         <button className="remove-file-btn" onClick={removePendingFile}>✕</button>
                     </div>
                 )}
-
                 <div className="chat-input-area">
-
-                    <input 
-                        type="file" 
-                        ref={fileInputRef} 
-                        onChange={handleFileChange} 
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
                         style={{ display: 'none' }}
                         accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg,.docx,.txt"
                     />
-                    
-                    <button 
-                        className="attach-button" 
+                    <button
+                        className="attach-button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isStreaming}
                     >
                         📎
                     </button>
-
                     <textarea
                         className="chat-input"
                         value={inputValue}
@@ -244,7 +255,6 @@ const ChatStreaming = () => {
                         disabled={isStreaming}
                         rows="1"
                     />
-                    
                     <button
                         className="chat-button"
                         onClick={askQuestion}
