@@ -56,6 +56,8 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
+    flex-grow: 1; /* THIS IS THE MAGIC LINE: Pushes the footer to the bottom! */
+    overflow-y: auto; /* In case you add lots of links later */
 }
 
 .nav-item {
@@ -81,6 +83,84 @@
     color: white;
     border-left: 4px solid #60a5fa;
 }
+
+
+/* --- Sidebar Footer & Profile (NEW) --- */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+    background-color: #0f172a; /* Slightly darker slate to anchor the bottom */
+    border-top: 1px solid #334155;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: #007bff; /* Matches your active nav highlight */
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.user-name {
+    color: #f8fafc;
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Prevents long names from breaking the sidebar */
+}
+
+.user-role {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+}
+
+.logout-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: transparent;
+    color: #ef4444; /* Clean Red */
+    border: 1px solid #ef4444;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.logout-btn:hover {
+    background-color: #ef4444;
+    color: white;
+}
+
 
 /* --- Main Content Area --- */
 .main-content {

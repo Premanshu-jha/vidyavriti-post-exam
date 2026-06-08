@@ -1,16 +1,33 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const ProtectedRoute = ({ children }) => {
-    // Check if the JWT token exists in sessionStorage
     const token = sessionStorage.getItem('authToken');
 
-    // If there is no token, redirect to the login page immediately
     if (!token) {
         return <Navigate to="/login" replace />;
     }
 
-    // If they have a token, render the requested component (the Layout)
+    try {
+    
+        const payload = jwtDecode(token);
+        const isExpired = payload.exp * 1000 < Date.now();
+
+        if (isExpired) {
+            console.warn("Token expired. Redirecting to login.");
+            sessionStorage.removeItem('authToken');
+            sessionStorage.removeItem('studentSession');
+            return <Navigate to="/login" replace />;
+        }
+        
+    } catch (error) {
+        console.error("Invalid token format.");
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('studentSession');
+        return <Navigate to="/login" replace />;
+    }
+
     return children;
 };
 

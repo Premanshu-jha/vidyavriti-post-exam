@@ -15,6 +15,8 @@ const StudentList = () => {
     const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
 
+    const getToken = () => sessionStorage.getItem('authToken');
+
     useEffect(() => {
         sessionStorage.setItem('dashboard_pageNumber', pageNumber.toString());
 
@@ -22,7 +24,7 @@ const StudentList = () => {
 
         const cachedData = sessionStorage.getItem(cacheKey);
 
-        if (cachedData) {
+        if (cachedData && cachedData != "undefined") {
             setStudents(JSON.parse(cachedData));
             setLoading(false);
             return;
@@ -30,9 +32,22 @@ const StudentList = () => {
 
         setLoading(true);
 
-        fetch(`/api/students?pageNumber=${pageNumber}&pageSize=${pageSize}`)
-            .then(res => res.json())
+        fetch(`/api/students?pageNumber=${pageNumber}&pageSize=${pageSize}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(res => {
+                console.log(res);
+                console.log(res.body);
+                let data = res.json();
+                console.log(data);
+                return data;
+    })
             .then(data => {
+                console.log(data);
                 sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 setStudents(data);
                 setLoading(false);
@@ -53,7 +68,7 @@ const StudentList = () => {
                 <div className="status-message">
                     <p>Loading students... ⏳</p>
                 </div>
-            ) : students.length === 0 ? (
+            ) : (students && students.length === 0) ? (
                 <div className="status-message">
                     <p>No students found in the database.</p>
                 </div>
@@ -71,7 +86,7 @@ const StudentList = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {students.map((student) => (
+                            {students && students.map((student) => (
                                 <tr key={student.id}>
                                     <td><strong>{student.rollNo}</strong></td>
                                     <td>{student.name}</td>
@@ -105,7 +120,7 @@ const StudentList = () => {
                         
                         <button 
                             className="btn-secondary" 
-                            disabled={students.length < pageSize} 
+                            disabled={students && students.length < pageSize} 
                             onClick={() => setPageNumber(prev => prev + 1)}
                             title="Next Page"
                         >
