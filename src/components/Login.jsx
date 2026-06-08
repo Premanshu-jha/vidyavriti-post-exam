@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import './Login.css';
-import logo from '../assets/vidyavriti-favicon.jpg'; 
+import logo from '../assets/vidyavriti-favicon.png'; 
 
 const Login = () => {
     const [step, setStep] = useState(1);

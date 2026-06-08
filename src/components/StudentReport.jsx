@@ -13,6 +13,9 @@ const StudentReport = () => {
     const [openIndices, setOpenIndices] = useState([0]); 
     const [activeTab, setActiveTab] = useState(""); 
 
+    // SECURE: Helper function to get the JWT token
+    const getToken = () => sessionStorage.getItem('authToken');
+
     useEffect(() => {
         const cacheKey = `student_report_${id}`;
         const cachedData = sessionStorage.getItem(cacheKey);
@@ -27,8 +30,18 @@ const StudentReport = () => {
         
         setLoading(true);
 
-        fetch(`/api/students/${id}/report`)
-            .then(res => res.json())
+        // SECURE: Added the Authorization header to the fetch request!
+        fetch(`/api/students/${id}/report`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(res => {
+                if (!res.ok) throw new Error("Unauthorized or Failed to fetch report");
+                return res.json();
+            })
             .then(data => {
                 sessionStorage.setItem(cacheKey, JSON.stringify(data));
                 setReports(data);
@@ -57,11 +70,11 @@ const StudentReport = () => {
     };
 
     const subjectConfig = {
-        physics: { symbol: "⚛️", color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)" }, // Purple
-        maths: { symbol: "📐", color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)" },   // Blue
-        chemistry: { symbol: "🧪", color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)" },// Teal
-        overall: { symbol: "🏆", color: "linear-gradient(180deg, #64748b 0%, #334155 100%)" }, // Slate/Gray
-        fallback: { symbol: "📝", color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)" } // Orange
+        physics: { symbol: "⚛️", color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)" }, 
+        maths: { symbol: "📐", color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)" },   
+        chemistry: { symbol: "🧪", color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)" },
+        overall: { symbol: "🏆", color: "linear-gradient(180deg, #64748b 0%, #334155 100%)" }, 
+        fallback: { symbol: "📝", color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)" } 
     };
 
     const studentInfo = reports.length > 0 ? reports[0].student : null;
@@ -92,7 +105,7 @@ const StudentReport = () => {
         });
     });
 
-    const numExams = filteredReports.length || 1; // Prevent division by zero
+    const numExams = filteredReports.length || 1; 
     const avgOverallScored = Math.round(sumOverallScored / numExams);
     const avgOverallMax = Math.round(sumOverallMax / numExams);
     const avgOverallPercent = sumOverallMax > 0 ? Math.round((sumOverallScored / sumOverallMax) * 100) : 0;
@@ -140,7 +153,6 @@ const StudentReport = () => {
 
                     {filteredReports.length > 0 && (
                         <>
-                        
                             <div className="averages-dashboard">
                                 {/* Overall Average Card */}
                                 <div className="average-card overall-avg">
@@ -152,7 +164,6 @@ const StudentReport = () => {
                                     </div>
                                 </div>
 
-                                
                                 {activeSubjects.map(sub => {
                                     const subName = sub.charAt(0).toUpperCase() + sub.slice(1);
                                     const config = subjectConfig[sub] || subjectConfig.fallback;
@@ -173,45 +184,42 @@ const StudentReport = () => {
                                 })}
                             </div>
 
-                    
                             {/* --- UPGRADED: SEPARATE SUBJECT CHARTS --- */}
-                    {filteredReports.length > 1 && (
-                        <div className="charts-container">
-                            {/* We loop through Overall + all dynamic subjects to create a chart for each! */}
-                            {['overall', ...activeSubjects].map(subject => {
-                                const isOverall = subject === 'overall';
-                                const config = isOverall ? subjectConfig.overall : (subjectConfig[subject] || subjectConfig.fallback);
-                                const title = isOverall ? "Overall Trend" : `${subject.charAt(0).toUpperCase() + subject.slice(1)} Trend`;
+                            {filteredReports.length > 1 && (
+                                <div className="charts-container">
+                                    {['overall', ...activeSubjects].map(subject => {
+                                        const isOverall = subject === 'overall';
+                                        const config = isOverall ? subjectConfig.overall : (subjectConfig[subject] || subjectConfig.fallback);
+                                        const title = isOverall ? "Overall Trend" : `${subject.charAt(0).toUpperCase() + subject.slice(1)} Trend`;
 
-                                return (
-                                    <div key={subject} className="exam-card trend-card">
-                                        <h3>{config.symbol} {title}</h3>
-                                        
-                                        <div className="css-bar-chart">
-                                            {filteredReports.map((report, idx) => {
-                                                // Dynamically grab the score based on if it's the Overall chart or a Subject chart
-                                                const scored = isOverall ? report.totalMarks : (report[`${subject}MarksScored`] || 0);
-                                                const max = isOverall ? report.exam.examTotalMarks : (report.exam[`${subject}TotalMarks`] || 1);
-                                                const percent = Math.max(0, (scored / max) * 100);
+                                        return (
+                                            <div key={subject} className="exam-card trend-card">
+                                                <h3>{config.symbol} {title}</h3>
                                                 
-                                                return (
-                                                    <div key={idx} className="bar-wrapper" title={`${report.exam.examIdentifier} - ${scored}/${max}`}>
-                                                        <div className="bar-fill" style={{ height: `${percent}%`, background: config.color }}>
-                                                            <span className="bar-tooltip">{scored}</span>
-                                                        </div>
-                                                        <span className="bar-label">{report.exam.examIdentifier}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                                                <div className="css-bar-chart">
+                                                    {filteredReports.map((report, idx) => {
+                                                        const scored = isOverall ? report.totalMarks : (report[`${subject}MarksScored`] || 0);
+                                                        const max = isOverall ? report.exam.examTotalMarks : (report.exam[`${subject}TotalMarks`] || 1);
+                                                        const percent = Math.max(0, (scored / max) * 100);
+                                                        
+                                                        return (
+                                                            <div key={idx} className="bar-wrapper" title={`${report.exam.examIdentifier} - ${scored}/${max}`}>
+                                                                <div className="bar-fill" style={{ height: `${percent}%`, background: config.color }}>
+                                                                    <span className="bar-tooltip">{scored}</span>
+                                                                </div>
+                                                                <span className="bar-label">{report.exam.examIdentifier}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                            
                             <h2>{activeTab} Detailed History</h2>
 
-                            
                             {filteredReports.map((report, index) => {
                                 const examDate = report.examStartTime ? report.examStartTime.split(' ')[0] : 'N/A';
                                 const startTime = report.examStartTime ? report.examStartTime.split(' ')[1] : 'N/A';

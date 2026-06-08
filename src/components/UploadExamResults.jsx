@@ -18,6 +18,9 @@ const UploadExamResults = () => {
     
     const fileInputRef = useRef(null);
 
+    // SECURE: Helper function to get the JWT token
+    const getToken = () => sessionStorage.getItem('authToken');
+
     const handleExamTypeChange = (e) => {
         setExamType(e.target.value);
         
@@ -67,8 +70,13 @@ const UploadExamResults = () => {
 
         const uploadUrl = `/api/file/upload?examType=${encodeURIComponent(examType)}`;
 
+        // SECURE: Added the Authorization header to the fetch request
         fetch(uploadUrl, {
             method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+                // Note: We deliberately DO NOT set Content-Type here so the browser can set the multipart boundary!
+            },
             body: formData, 
         })
         .then(async res => {
@@ -85,7 +93,7 @@ const UploadExamResults = () => {
             setIsUploading(false);
         })
         .catch(err => {
-            consolrollNumbere.error(err);
+            console.error(err); // Fixed the typo here!
             setStatusMessage(`❌ Error uploading file: ${err.message}`);
             setIsUploading(false);
         });
@@ -102,8 +110,12 @@ const UploadExamResults = () => {
 
         const bulkUrl = `/api/file/${encodeURIComponent(examType)}/${encodeURIComponent(examIdentifier)}/bulk-update`;
 
+        
         fetch(bulkUrl, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${getToken()}`
+            }
         })
         .then(res => {
             if (!res.ok) return res.text().then(text => { throw new Error(text) });
@@ -188,7 +200,6 @@ const UploadExamResults = () => {
                     <button 
                         className="btn-primary" 
                         onClick={handleUpload} 
-                        // Disabled if no file OR uploading/processing OR already uploaded
                         disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}
                     >
                         {isUploading ? "Uploading... ⏳" : "Upload to Server"}
@@ -204,7 +215,6 @@ const UploadExamResults = () => {
                     <button 
                         className="btn-success" 
                         onClick={handleBulkUpdate} 
-                        // Strictly disabled until the upload is 100% finished
                         disabled={!isUploadSuccess || isUploading || isProcessing}
                     >
                         {isProcessing ? "Processing Data... ⏳" : "Push Data to Database"}
