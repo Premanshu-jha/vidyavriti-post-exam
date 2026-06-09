@@ -1,18 +1,182 @@
+/* DocumentViewer.css - VIDYAVRITI THEME */
+
+:root {
+    --primary-dark: #0b2241;   /* Deep Navy */
+    --primary-teal: #199fa6;   /* Vibrant Teal */
+    --accent-green: #3ab55b;   /* Growth Green */
+    --bg-light: #f4f7f6;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --error-red: #d9534f;
+    --white: #ffffff;
+}
+
+.doc-dashboard-container {
+    padding: 30px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1100px;
+    margin: 0 auto;
+    background-color: var(--bg-light);
+    min-height: 100vh;
+}
+
+.doc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.doc-header h2 {
+    color: var(--primary-dark);
+    margin: 0;
+    font-size: 1.8rem;
+}
 
 .header-refresh-btn {
-    font-size: 1rem;
+    font-size: 0.95rem;
     display: flex;
     align-items: center;
     gap: 8px;
+    background-color: var(--white);
+    color: var(--text-light);
+    border: 1px solid #cccccc;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.header-refresh-btn:hover {
+    color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    background-color: #f9f9f9;
+}
+
+/* --- Table Styling --- */
+.table-responsive {
+    overflow-x: auto;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(11, 34, 65, 0.05); /* Navy Shadow */
+    border: 1px solid #e2e8f0;
+}
+
+.doc-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.doc-table th,
+.doc-table td {
+    padding: 16px 20px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.doc-table th {
+    background-color: rgba(11, 34, 65, 0.03);
+    font-weight: 600;
+    color: var(--text-light);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.doc-table tr:hover {
+    background-color: rgba(25, 159, 166, 0.03); /* Faint teal hover */
+}
+
+.doc-meta {
+    color: var(--text-light);
+    font-size: 0.95rem;
 }
 
 .text-center {
     text-align: center !important;
 }
 
+/* --- Dynamic File Icons --- */
+.filename-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filename-text {
+    font-weight: 600;
+    color: var(--primary-dark);
+    font-size: 1.05rem;
+}
+
+.file-icon {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+/* Color coding based on extension */
+.icon-pdf { color: var(--error-red); }
+.icon-excel { color: var(--accent-green); }
+.icon-word { color: #2563eb; /* Strong Blue */ }
+.icon-image { color: #8b5cf6; /* Purple */ }
+.icon-default { color: #94a3b8; /* Slate Gray */ }
+
+/* --- Action Buttons --- */
 .action-buttons-wrapper {
     display: flex;
     gap: 10px;
     justify-content: center;
     align-items: center;
+}
+
+.btn-download {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background-color: rgba(25, 159, 166, 0.1); /* Faint teal */
+    color: var(--primary-teal);
+    border: 1px solid rgba(25, 159, 166, 0.3);
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-download:hover {
+    background-color: var(--primary-teal);
+    color: var(--white);
+}
+
+.btn-danger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    color: #ef4444; /* Clean Red */
+    border: 1px solid transparent;
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+/* Status Messages */
+.status-message {
+    text-align: center;
+    padding: 40px;
+    background-color: var(--white);
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    box-shadow: 0 2px 8px rgba(11, 34, 65, 0.05);
 }

@@ -1,28 +1,153 @@
+/* StudentReport.css - VIDYAVRITI THEME */
+
+:root {
+    --primary-dark: #0b2241;   /* Deep Navy */
+    --primary-teal: #199fa6;   /* Vibrant Teal */
+    --accent-green: #3ab55b;   /* Growth Green */
+    --bg-light: #f4f7f6;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --error-red: #d9534f;
+    --white: #ffffff;
+}
+
+.dashboard-container {
+    padding: 30px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--bg-light);
+    min-height: 100vh;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+/* --- Data Tables --- */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--white);
+    box-shadow: 0 1px 3px rgba(11, 34, 65, 0.1); /* Navy shadow */
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.data-table th,
+.data-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.data-table th {
+    background-color: rgba(11, 34, 65, 0.04); /* Faint navy */
+    font-weight: 600;
+    color: var(--primary-dark);
+}
+
+.data-table tr:hover {
+    background-color: rgba(25, 159, 166, 0.05); /* Faint teal hover */
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background-color: var(--primary-dark);
+    color: var(--white);
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-teal);
+}
+
+.btn-secondary {
+    background-color: var(--white);
+    color: var(--text-light);
+    border: 1px solid #cccccc;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    background-color: #f9f9f9;
+}
+
+.btn-secondary:disabled {
+    background-color: #ced4da;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 20px;
+    align-items: center;
+}
+
+.page-indicator {
+    font-weight: 600;
+    color: var(--primary-dark);
+    line-height: 1;
+}
+
+.status-message {
+    text-align: center;
+    padding: 40px;
+    background-color: var(--white);
+    border-radius: 8px;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(11, 34, 65, 0.05);
+}
+
 /* --- Generic Layout & Table Styles --- */
 .exam-card {
     margin-bottom: 40px;
-    background: white;
+    background: var(--white);
     padding: 25px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(11, 34, 65, 0.05);
 }
 
 .exam-header {
     margin-bottom: 20px;
-    border-bottom: 2px solid #eee;
+    border-bottom: 2px solid #e2e8f0;
     padding-bottom: 15px;
 }
 
 .exam-header h3 {
     margin-top: 0;
     margin-bottom: 10px;
-    color: #333;
+    color: var(--primary-dark);
 }
 
 .exam-meta {
     display: flex;
     gap: 20px;
-    color: #555;
+    color: var(--text-light);
     font-size: 0.95rem;
     flex-wrap: wrap;
 }
@@ -36,32 +161,33 @@
 }
 
 .text-success {
-    color: #28a745;
+    color: var(--accent-green);
     font-weight: bold;
 }
 
 .text-danger {
-    color: #dc3545;
+    color: var(--error-red);
     font-weight: bold;
 }
 
 .summary-row {
-    background-color: #f8f9fa;
-    border-top: 2px solid #dee2e6;
+    background-color: rgba(11, 34, 65, 0.03);
+    border-top: 2px solid #cbd5e1;
 }
 
 .summary-row td {
     font-weight: bold;
+    color: var(--primary-dark);
 }
 
 .summary-score {
     font-size: 1.1rem;
 }
 
-/* --- Student Profile Header --- */
+/* --- Student Profile Header (Branded Gradient) --- */
 .student-profile-header {
-    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-teal) 100%);
+    color: var(--white);
     padding: 30px 40px;
     border-radius: 12px;
     margin-top: 20px;
@@ -69,7 +195,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.25);
+    box-shadow: 0 6px 15px rgba(25, 159, 166, 0.25);
     flex-wrap: wrap;
     gap: 20px;
 }
@@ -108,17 +234,18 @@
 
 /* --- Accordion Styles --- */
 .accordion-item {
-    background: white;
+    background: var(--white);
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(11, 34, 65, 0.05);
     margin-bottom: 15px;
     overflow: hidden;
+    border: 1px solid #e2e8f0;
 }
 
 .accordion-header {
     width: 100%;
     padding: 20px 25px;
-    background: #ffffff;
+    background: var(--white);
     border: none;
     display: flex;
     justify-content: space-between;
@@ -126,10 +253,11 @@
     cursor: pointer;
     text-align: left;
     outline: none;
+    transition: background-color 0.2s ease;
 }
 
 .accordion-header:hover {
-    background-color: #f8f9fa;
+    background-color: rgba(25, 159, 166, 0.03); /* Faint teal hover */
 }
 
 .accordion-title-area {
@@ -142,20 +270,20 @@
 .accordion-title-area h3 {
     margin: 0;
     font-size: 1.15rem;
-    color: #333;
+    color: var(--primary-dark);
 }
 
 .accordion-summary-tags {
     display: flex;
     align-items: center;
     gap: 15px;
-    color: #666;
+    color: var(--text-light);
     font-size: 0.9rem;
 }
 
 .accordion-icon {
     font-size: 1.2rem;
-    color: #007bff;
+    color: var(--primary-teal); /* Teal accents */
     font-weight: bold;
     display: inline-block;
     transition: transform 0.3s ease;
@@ -167,7 +295,7 @@
 
 .accordion-body {
     padding: 10px 25px 25px 25px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid #e2e8f0;
 }
 
 .accordion-body-wrapper {
@@ -194,8 +322,8 @@
 }
 
 .rank-badge-header {
-    background: #e7f1ff;
-    color: #007bff;
+    background: rgba(25, 159, 166, 0.1);
+    color: var(--primary-teal);
     padding: 4px 10px;
     border-radius: 4px;
     font-weight: 700;
@@ -220,9 +348,9 @@
 
 .exam-tab {
     padding: 10px 20px;
-    background-color: #e2e8f0;
-    color: #475569;
-    border: none;
+    background-color: var(--white);
+    color: var(--text-light);
+    border: 1px solid #cccccc;
     border-radius: 30px;
     font-weight: 600;
     font-size: 0.95rem;
@@ -232,13 +360,15 @@
 }
 
 .exam-tab:hover {
-    background-color: #cbd5e1;
+    border-color: var(--primary-teal);
+    color: var(--primary-teal);
 }
 
 .exam-tab.active {
-    background-color: #0f172a;
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    background-color: var(--primary-dark);
+    color: var(--white);
+    border-color: var(--primary-dark);
+    box-shadow: 0 4px 6px -1px rgba(11, 34, 65, 0.2);
 }
 
 /* --- AVERAGES SUMMARY DASHBOARD --- */
@@ -250,19 +380,19 @@
 }
 
 .average-card {
-    background: white;
+    background: var(--white);
     border-radius: 12px;
     padding: 20px;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 4px rgba(11, 34, 65, 0.05);
     border: 1px solid #e2e8f0;
 }
 
 .overall-avg {
-    background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
-    color: white;
+    background: linear-gradient(135deg, var(--primary-dark) 0%, #173b6b 100%);
+    color: var(--white);
     border: none;
 }
 
@@ -282,13 +412,13 @@
 }
 
 .average-card:not(.overall-avg) .avg-icon {
-    background: #f1f5f9;
+    background: rgba(11, 34, 65, 0.04);
 }
 
 .avg-details h4 {
     margin: 0 0 4px 0;
     font-size: 0.9rem;
-    color: #64748b;
+    color: var(--text-light);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -298,6 +428,11 @@
     font-weight: 800;
     line-height: 1;
     margin-bottom: 4px;
+    color: var(--primary-dark);
+}
+
+.overall-avg .avg-score {
+    color: var(--white);
 }
 
 .max-score {
@@ -309,34 +444,33 @@
 .avg-percent {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #10b981; 
+    color: var(--accent-green); 
 }
 
 .text-muted {
-    color: #64748b;
+    color: var(--text-light);
 }
 
 /* --- SEPARATE SUBJECT CHARTS --- */
 .charts-container {
     display: grid;
-    /* Automatically places charts side-by-side on large screens */
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
     gap: 24px;
     margin-bottom: 30px;
 }
 
 .trend-card {
-    background: white;
+    background: var(--white);
     padding: 24px;
     border-radius: 12px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    margin-bottom: 0; /* Reset since the grid gap handles spacing */
+    box-shadow: 0 2px 4px rgba(11, 34, 65, 0.05);
+    margin-bottom: 0; 
 }
 
 .trend-card h3 {
     margin-top: 0;
     margin-bottom: 20px;
-    color: #334155;
+    color: var(--primary-dark);
     font-size: 1.1rem;
     display: flex;
     align-items: center;
@@ -348,7 +482,7 @@
     align-items: flex-end;
     gap: 20px;
     height: 180px;
-    padding-top: 25px; /* Extra padding so tooltips have room */
+    padding-top: 25px; 
     border-bottom: 2px solid #e2e8f0;
     overflow-x: auto;
     padding-bottom: 8px;
@@ -385,17 +519,16 @@
     transform: translateX(-50%);
     font-size: 0.85rem;
     font-weight: 700;
-    color: #475569;
+    color: var(--text-light);
     white-space: nowrap;
 }
 
 .bar-label {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-light);
     font-weight: 600;
     text-align: center;
     white-space: nowrap;
     width: 100%;
     padding-top: 4px;
-    /* overflow: hidden removed to fix the cut-off underscores */
 }

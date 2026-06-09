@@ -1,9 +1,18 @@
-/* Sidebar.css */
+/* Sidebar.css - VIDYAVRITI THEME */
+
+:root {
+    --primary-dark: #0b2241;   /* Deep Navy */
+    --primary-teal: #199fa6;   /* Vibrant Teal */
+    --bg-light: #f4f7f6;
+    --error-red: #d9534f;
+    --white: #ffffff;
+    --sidebar-darker: #07162c; /* Slightly darker than primary-dark for the footer anchor */
+}
 
 .app-wrapper {
     display: flex;
     min-height: 100vh;
-    background-color: #f4f6f8;
+    background-color: var(--bg-light);
 }
 
 .mobile-header-title {
@@ -14,15 +23,15 @@
 /* --- Sidebar Desktop Base --- */
 .sidebar {
     width: 260px;
-    background-color: #1e293b;
-    color: white;
+    background-color: var(--primary-dark);
+    color: var(--white);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
     z-index: 1000;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    box-shadow: 4px 0 15px rgba(11, 34, 65, 0.15); /* Navy shadow */
 }
 
 .sidebar-header {
@@ -30,21 +39,21 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #334155;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-header h2 {
     margin: 0;
     font-size: 1.5rem;
     letter-spacing: 1px;
-    color: #f8fafc;
+    color: var(--white);
 }
 
 .close-btn {
     display: none; /* Hidden on desktop */
     background: none;
     border: none;
-    color: white;
+    color: var(--white);
     font-size: 2rem;
     cursor: pointer;
     line-height: 1;
@@ -56,13 +65,13 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    flex-grow: 1; /* THIS IS THE MAGIC LINE: Pushes the footer to the bottom! */
-    overflow-y: auto; /* In case you add lots of links later */
+    flex-grow: 1; /* Pushes the footer to the bottom! */
+    overflow-y: auto; 
 }
 
 .nav-item {
     padding: 15px 25px;
-    color: #cbd5e1;
+    color: #a0b2c6; /* Soft blue-gray for unselected text */
     text-decoration: none;
     font-size: 1.05rem;
     font-weight: 500;
@@ -73,24 +82,23 @@
 }
 
 .nav-item:hover {
-    background-color: #334155;
-    color: white;
+    background-color: rgba(25, 159, 166, 0.1); /* Faint teal highlight */
+    color: var(--white);
 }
 
 /* React Router automatically applies this class to the active route! */
 .nav-item.active {
-    background-color: #007bff;
-    color: white;
-    border-left: 4px solid #60a5fa;
+    background-color: var(--primary-teal);
+    color: var(--white);
+    border-left: 4px solid #8ce3e8; /* Lighter teal for the active border */
 }
 
-
-/* --- Sidebar Footer & Profile (NEW) --- */
+/* --- Sidebar Footer & Profile --- */
 .sidebar-footer {
     margin-top: auto;
     padding: 20px;
-    background-color: #0f172a; /* Slightly darker slate to anchor the bottom */
-    border-top: 1px solid #334155;
+    background-color: var(--sidebar-darker); 
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .user-info {
@@ -104,8 +112,8 @@
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background-color: #007bff; /* Matches your active nav highlight */
-    color: white;
+    background-color: var(--primary-teal); 
+    color: var(--white);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -113,6 +121,7 @@
     font-weight: bold;
     text-transform: uppercase;
     flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(25, 159, 166, 0.3);
 }
 
 .user-details {
@@ -122,16 +131,16 @@
 }
 
 .user-name {
-    color: #f8fafc;
+    color: var(--white);
     font-size: 0.95rem;
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis; /* Prevents long names from breaking the sidebar */
+    text-overflow: ellipsis; 
 }
 
 .user-role {
-    color: #94a3b8;
+    color: #a0b2c6;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 0.5px;
@@ -145,9 +154,9 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background-color: transparent;
-    color: #ef4444; /* Clean Red */
-    border: 1px solid #ef4444;
+    background-color: rgba(217, 83, 79, 0.1); /* Faint red */
+    color: #ff6b6b; 
+    border: 1px solid rgba(217, 83, 79, 0.3);
     padding: 10px;
     border-radius: 6px;
     font-size: 0.95rem;
@@ -157,24 +166,24 @@
 }
 
 .logout-btn:hover {
-    background-color: #ef4444;
-    color: white;
+    background-color: var(--error-red);
+    color: var(--white);
+    border-color: var(--error-red);
 }
-
 
 /* --- Main Content Area --- */
 .main-content {
     flex: 1;
-    margin-left: 260px; /* Offset by the width of the desktop sidebar */
+    margin-left: 260px; 
     padding: 20px;
     min-height: 100vh;
 }
 
 /* --- Mobile Header (Hamburger) --- */
 .mobile-header {
-    display: none; /* Hidden on desktop */
-    background-color: #1e293b;
-    color: white;
+    display: none; 
+    background-color: var(--primary-dark);
+    color: var(--white);
     padding: 15px 20px;
     align-items: center;
     gap: 15px;
@@ -182,13 +191,13 @@
     width: 100%;
     top: 0;
     z-index: 900;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(11, 34, 65, 0.2);
 }
 
 .hamburger-btn {
     background: none;
     border: none;
-    color: white;
+    color: var(--white);
     font-size: 1.8rem;
     cursor: pointer;
     padding: 0;
@@ -202,7 +211,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.5);
+    background: rgba(11, 34, 65, 0.5); /* Navy tinted blur */
     z-index: 950;
     backdrop-filter: blur(2px);
 }
@@ -210,28 +219,28 @@
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
     .sidebar {
-        transform: translateX(-100%); /* Hides sidebar off-screen to the left */
+        transform: translateX(-100%); 
     }
 
     .sidebar.open {
-        transform: translateX(0); /* Slides it in */
+        transform: translateX(0); 
     }
 
     .close-btn {
-        display: block; /* Show the X button */
+        display: block; 
     }
 
     .mobile-header {
-        display: flex; /* Show the top bar */
+        display: flex; 
     }
 
     .sidebar-overlay.open {
-        display: block; /* Show the dark background */
+        display: block; 
     }
 
     .main-content {
-        margin-left: 0; /* Remove the desktop offset */
-        margin-top: 60px; /* Push content down so it doesn't hide under mobile header */
+        margin-left: 0; 
+        margin-top: 60px; 
         padding: 15px;
         min-height: calc(100vh - 60px);
     }

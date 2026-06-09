@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import './Dashboard.css';
 import './DocumentViewer.css'; 
+import { getFileIcon } from './utils'; 
 
 const DocumentViewer = () => {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Helper function to get the token securely
     const getToken = () => sessionStorage.getItem('authToken');
 
     useEffect(() => {
@@ -36,27 +35,16 @@ const DocumentViewer = () => {
             });
     };
 
-    // SECURE TWO-STEP DOWNLOAD: 
-    // 1. Get short-lived ticket via API (with JWT)
-    // 2. Use ticket in URL to trigger native browser stream
     const handleDownload = async (id) => {
         try {
-            // Step 1: Securely ask for a download ticket
             const ticketRes = await fetch(`/api/file/generate-ticket/${id}`, {
                 method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${getToken()}` 
-                }
+                headers: { 'Authorization': `Bearer ${getToken()}` }
             });
             
-            if (!ticketRes.ok) {
-                throw new Error("Unauthorized to download this file.");
-            }
+            if (!ticketRes.ok) throw new Error("Unauthorized to download this file.");
             
-            // Because your backend returns a raw String, .text() extracts it perfectly
             const ticket = await ticketRes.text(); 
-
-            
             window.location.href = `/api/file/download/${id}?ticket=${ticket}`;
             
         } catch (err) {
@@ -72,9 +60,7 @@ const DocumentViewer = () => {
 
         fetch(`/api/file/delete/${id}`, { 
             method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${getToken()}` 
-            }
+            headers: { 'Authorization': `Bearer ${getToken()}` }
         })
             .then(res => {
                 if (res.ok) {
@@ -87,25 +73,24 @@ const DocumentViewer = () => {
     };
 
     return (
-        <div className="dashboard-container">
-            <div className="dashboard-header">
+        <div className="doc-dashboard-container">
+            <div className="doc-header">
                 <h2>Document Repository</h2>
                 <button className="btn-secondary header-refresh-btn" onClick={fetchFiles}>
-                    🔄 Refresh List
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-11.1l1.75 1.53"></path>
+                    </svg>
+                    Refresh List
                 </button>
             </div>
 
             {loading ? (
-                <div className="status-message">
-                    <p>Loading documents... ⏳</p>
-                </div>
+                <div className="status-message"><p>Loading documents... ⏳</p></div>
             ) : files.length === 0 ? (
-                <div className="status-message">
-                    <p>No documents have been uploaded yet.</p>
-                </div>
+                <div className="status-message"><p>No documents have been uploaded yet.</p></div>
             ) : (
                 <div className="table-responsive">
-                    <table className="data-table">
+                    <table className="doc-table">
                         <thead>
                             <tr>
                                 <th>Filename</th>
@@ -117,23 +102,39 @@ const DocumentViewer = () => {
                         <tbody>
                             {files.map((file) => (
                                 <tr key={file.id}>
-                                    <td><strong>📄 {file.fileName}</strong></td>
-                                    <td>{file.size} MB</td>
-                                    <td>{file.uploadDate}</td> 
+                                    <td>
+                                        <div className="filename-wrapper">
+                                            {/* Using your imported util function here! */}
+                                            {getFileIcon(file.fileName)}
+                                            <span className="filename-text">{file.fileName}</span>
+                                        </div>
+                                    </td>
+                                    <td className="doc-meta">{file.size} MB</td>
+                                    <td className="doc-meta">{file.uploadDate}</td> 
                                     
                                     <td className="text-center">
                                         <div className="action-buttons-wrapper">
                                             <button 
-                                                className="btn-primary" 
+                                                className="btn-download" 
                                                 onClick={() => handleDownload(file.id)}
+                                                title="Download File"
                                             >
-                                                ⬇️ Download
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                                </svg>
+                                                Download
                                             </button>
                                             <button 
                                                 className="btn-danger" 
                                                 onClick={() => handleDelete(file.id, file.fileName)}
+                                                title="Delete File"
                                             >
-                                                🗑️ Delete
+                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
                                             </button>
                                         </div>
                                     </td>
