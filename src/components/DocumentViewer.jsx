@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DocumentViewer.css'; 
-import { getFileIcon } from './utils'; 
+import { getFileIcon } from '../assets/utils';
 
 const DocumentViewer = () => {
     const [files, setFiles] = useState([]);
