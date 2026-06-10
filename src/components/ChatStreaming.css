@@ -1,16 +1,24 @@
-/* ChatStreaming.css */
+/* ChatStreaming.css - VIDYAVRITI THEME */
+
+:root {
+    --primary-dark: #0b2241;   /* Deep Navy */
+    --primary-teal: #199fa6;   /* Vibrant Teal */
+    --accent-green: #3ab55b;   /* Growth Green */
+    --bg-light: #f4f7f6;
+    --text-dark: #333333;
+    --text-light: #666666;
+    --error-red: #d9534f;
+    --white: #ffffff;
+}
 
 .chat-container {
     display: flex;
     flex-direction: column;
-    /* Desktop: 100vh minus the 40px padding from .main-content (20px top + 20px bottom) */
     height: calc(100vh - 40px); 
     max-width: 800px;
     margin: 0 auto;
-    
-    /* box-sizing ensures any padding we add doesn't increase the total height/width */
     box-sizing: border-box; 
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 .chat-history {
@@ -26,263 +34,183 @@
 
 .message {
     padding: 12px 18px;
-    border-radius: 8px;
+    border-radius: 12px;
     max-width: 80%;
     line-height: 1.5;
-    
-    /* Critical for mobile: prevents long strings/tables from breaking the screen width */
     overflow-wrap: break-word; 
     overflow-x: auto; 
-
     display: flex;
     flex-direction: column;
-
     flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(11, 34, 65, 0.05);
 }
 
 .message-header {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     margin-bottom: 5px;
     display: flex;
+    font-weight: 600;
 }
 
 .message-USER .message-header {
     justify-content: flex-end;
-    color: rgba(255, 255, 255, 0.7); 
+    color: rgba(255, 255, 255, 0.8); 
 }
-
 
 .message-ASSISTANT .message-header,
 .message-SYSTEM .message-header {
     justify-content: flex-start;
-    color: #9ca3af; 
+    color: var(--text-light); 
 }
 
-/* Optional: Removes the default top margin from markdown paragraphs so they sit flush under the timestamp */
 .message-content p:first-child {
     margin-top: 0;
 }
 
-
-@media (max-width: 768px) {
-    .chat-container {
-        position: fixed;
-        top: 60px; /* Locks exactly below your mobile header */
-        left: 0;
-        right: 0;
-        bottom: 0; /* Locks exactly to the bottom of the screen */
-        height: auto; /* Let top/bottom control the height */
-        
-        padding: 15px;
-        background-color: #f4f6f8; /* Matches the app background */
-        z-index: 100; /* Keeps it above everything else */
-    }
-    
-    .message {
-        max-width: 95%; /* Let bubbles take up more room on tiny mobile screens */
-        padding: 10px 14px;
-        font-size: 0.95rem;
-    }
-    
-    .chat-input-area {
-        gap: 5px;
-        /* Adds a tiny bit of bottom padding so the keyboard doesn't squish it */
-        padding-bottom: 10px; 
-    }
-    
-    .chat-button {
-        padding: 10px 15px;
-    }
-}
-
-
-/* Distinct Colors for the 3 Message Types */
+/* Distinct Colors for the 3 Message Types (THEMED) */
 .message-USER {
-    background-color: #007bff;
-    color: white;
-    align-self: flex-end; /* Pushes user bubbles to the right */
+    background-color: var(--primary-teal); /* Vibrant Teal for user bubbles */
+    color: var(--white);
+    align-self: flex-end; 
     border-bottom-right-radius: 2px;
 }
 
 .message-ASSISTANT {
-    background-color: #f1f3f5;
-    color: #333;
-    align-self: flex-start; /* Pushes AI bubbles to the left */
-    border: 1px solid #dee2e6;
+    background-color: var(--white);
+    color: var(--text-dark);
+    align-self: flex-start; 
+    border: 1px solid #e2e8f0;
     border-bottom-left-radius: 2px;
 }
 
 .message-SYSTEM {
-    background-color: #fff3cd;
-    color: #856404;
-    align-self: center; /* Centers Janitor/System notes */
+    background-color: rgba(25, 159, 166, 0.1); /* Faint teal */
+    color: var(--primary-teal);
+    align-self: center; 
     font-size: 0.85em;
     font-style: italic;
     width: 90%;
     text-align: center;
 }
 
-/* Input Area Styling */
-/* 1. THE CONTAINER */
-.chat-input-area {
-    display: flex;
-    gap: 10px;
-    
-    /* 💥 THE MAGIC FIX: Anchors the button to the bottom instead of stretching it! */
-    align-items: flex-end; 
-    padding-bottom: 10px;
-}
-
-/* 2. THE TEXTAREA */
-.chat-input {
-    flex: 1;
-    box-sizing: border-box;
-    
-    /* Lock the starting height strictly to 46px */
-    height: 46px; 
-    min-height: 46px; 
-    max-height: 120px; 
-    
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 16px;
-    font-family: inherit;
-    line-height: 20px; /* 20px text + 24px padding + 2px borders = 46px */
-    
-    resize: none; 
-    overflow-y: auto; 
-}
-.chat-input:focus {
-    /* 1. Kills the browser's default ugly black border */
-    outline: none;   
-    border-color: #28a745; 
-    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.25); 
-}
-/* 3. THE BUTTON */
-.chat-button {
-    height: 46px; 
-    padding: 0 24px;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    
-    /* Center the text perfectly inside the button */
+/* --- SVG Icon Styling for Chat --- */
+.file-icon-wrapper {
     display: flex;
     align-items: center;
-    justify-content: center;
-    white-space: nowrap; 
+    margin-right: 10px;
 }
 
-.chat-button:disabled {
-    background-color: #6c757d;
-    cursor: not-allowed;
+.file-icon-wrapper svg {
+    width: 22px;
+    height: 22px;
 }
 
-/* --- MARKDOWN TABLE & CODE BLOCK FIXES --- */
+/* Color coding based on extension */
+.icon-pdf { color: var(--error-red); }
+.icon-excel { color: var(--accent-green); }
+.icon-word { color: #2563eb; }
+.icon-image { color: #8b5cf6; }
+.icon-default { color: var(--text-light); }
 
-.message-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 10px 0;
-    font-size: 0.9rem; /* Slightly smaller text for mobile tables */
-    table-layout: fixed; /* Forces columns to respect the width of the screen */
-}
-
-.message-content th,
-.message-content td {
-    border: 1px solid #cbd5e1;
-    padding: 8px;
-    text-align: left;
-    white-space: normal;
-    overflow-wrap: break-word; 
-}
-
-/* Ensure code blocks also wrap their text instead of scrolling */
-.message-content pre {
-    white-space: pre-wrap; 
-    overflow-wrap: break-word;
-    background-color: #f8f9fa;
-    padding: 12px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-}
-
-/* Container enclosing the text box and the file attachment chips */
+/* --- Input Area Styling --- */
 .chat-input-container {
     display: flex;
     flex-direction: column;
-    border: 1px solid #e0e0e0;
+    border: 1px solid #cccccc;
     border-radius: 12px;
-    background-color: #ffffff;
-    padding: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    background-color: var(--white);
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(11, 34, 65, 0.05); /* Navy shadow */
 }
 
-/* Pending file chip layout */
-.pending-file-preview {
-    display: inline-flex;
-    align-items: center;
-    background-color: #f1f3f4;
-    padding: 6px 12px;
+.chat-input-area {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end; 
+}
+
+.chat-input {
+    flex: 1;
+    box-sizing: border-box;
+    height: 46px; 
+    min-height: 46px; 
+    max-height: 120px; 
+    padding: 12px;
+    border: 1px solid #e2e8f0;
     border-radius: 8px;
-    margin-bottom: 8px;
-    align-self: flex-start;
-    font-size: 0.85rem;
+    font-size: 16px;
+    font-family: inherit;
+    line-height: 20px; 
+    resize: none; 
+    overflow-y: auto; 
+    transition: all 0.3s ease;
 }
 
-.pending-file-name {
-    margin-right: 12px;
-    max-width: 100%;
-    /* 💥 Cleaned up: Removed overflow: hidden and text-overflow: ellipsis */
-    white-space: normal; 
-    overflow-wrap: anywhere;
+.chat-input:focus {
+    outline: none;   
+    border-color: var(--primary-teal); 
+    box-shadow: 0 0 0 3px rgba(25, 159, 166, 0.15); 
 }
 
-.remove-file-btn {
-    background: none;
+/* 3. THE BUTTONS */
+.chat-button {
+    height: 46px; 
+    width: 46px; /* Made it a perfect square to hold the nice SVG send icon */
+    padding: 0;
+    background-color: var(--primary-dark);
+    color: var(--white);
     border: none;
-    color: #888;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
 }
 
-.remove-file-btn:hover {
-    color: #333;
+.chat-button:hover:not(:disabled) {
+    background-color: var(--primary-teal);
 }
 
-/* Attach button formatting */
+.chat-button:disabled {
+    background-color: #a0b2c6;
+    cursor: not-allowed;
+}
+
 .attach-button {
     background: none;
     border: none;
-    font-size: 1.2rem;
     cursor: pointer;
-    padding: 4px 8px;
-    color: #666;
+    padding: 10px;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    height: 46px;
+    transition: all 0.2s ease;
 }
 
-.attach-button:hover {
-    color: #111;
+.attach-button:hover:not(:disabled) {
+    background-color: rgba(11, 34, 65, 0.05);
+    color: var(--primary-dark);
 }
 
-/* Rendering the chip inside historical chat messages */
+/* --- Attachments inside messages --- */
 .message-file-attachment {
     display: flex;
     align-items: center;
-    background: rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 10px;
+    background: rgba(255, 255, 255, 0.15); /* Slightly transparent for user bubble */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 10px 14px;
     border-radius: 8px;
-    margin-bottom: 8px;
-    max-width: 100%; /* Let it expand fully if needed */
+    margin-bottom: 10px;
+    max-width: 100%; 
 }
 
-.file-icon {
-    font-size: 1.5rem;
-    margin-right: 10px;
+.message-ASSISTANT .message-file-attachment {
+    background: rgba(11, 34, 65, 0.03); /* Faint navy for assistant bubble */
+    border-color: #e2e8f0;
 }
 
 .file-info {
@@ -299,5 +227,93 @@
 
 .file-size {
     font-size: 0.75rem;
-    color: #666;
+    opacity: 0.8;
+}
+
+/* Pending file chip layout */
+.pending-file-preview {
+    display: inline-flex;
+    align-items: center;
+    background-color: rgba(11, 34, 65, 0.04);
+    border: 1px solid #e2e8f0;
+    padding: 8px 14px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    align-self: flex-start;
+    font-size: 0.9rem;
+}
+
+.pending-file-name {
+    margin-right: 12px;
+    max-width: 100%;
+    white-space: normal; 
+    overflow-wrap: anywhere;
+    font-weight: 500;
+    color: var(--primary-dark);
+}
+
+.remove-file-btn {
+    background: none;
+    border: none;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 4px;
+}
+
+.remove-file-btn:hover {
+    color: var(--error-red);
+}
+
+/* --- MARKDOWN TABLE & CODE BLOCK FIXES --- */
+.message-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 0.9rem; 
+    table-layout: fixed; 
+}
+
+.message-content th,
+.message-content td {
+    border: 1px solid #cbd5e1;
+    padding: 8px;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: break-word; 
+}
+
+.message-content pre {
+    white-space: pre-wrap; 
+    overflow-wrap: break-word;
+    background-color: #1e293b; /* Dark slate for code blocks */
+    color: #f8fafc;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #334155;
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        position: fixed;
+        top: 60px; 
+        left: 0;
+        right: 0;
+        bottom: 0; 
+        height: auto; 
+        padding: 15px;
+        background-color: var(--bg-light); 
+        z-index: 100; 
+    }
+    
+    .message {
+        max-width: 95%; 
+        padding: 10px 14px;
+        font-size: 0.95rem;
+    }
+    
+    .chat-input-area {
+        gap: 5px;
+        padding-bottom: 10px; 
+    }
 }

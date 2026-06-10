@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { fetchEventSource } from '@microsoft/fetch-event-source';
 import ReactMarkdown from 'react-markdown';
-import './ChatStreaming.css';
 import remarkGfm from 'remark-gfm';
+import './ChatStreaming.css';
+
+// Import your new utility!
+import { getFileIcon } from '../assets/utils'; 
 
 const ChatStreaming = () => {
     const [messages, setMessages] = useState([]);
@@ -13,7 +16,6 @@ const ChatStreaming = () => {
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
 
-    // Safely parse the session storage JSON!
     const sessionData = JSON.parse(sessionStorage.getItem("studentSession") || "{}");
     const { name, role, rollNo } = sessionData;
 
@@ -28,14 +30,12 @@ const ChatStreaming = () => {
     }, [messages]);
 
     useEffect(() => {
-        // Attach the JWT token to fetch history
         fetch(`/api/chat/${rollNo}/chat-history`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         })
             .then(res => res.json())
             .then(data => {
                 if (data.length === 0 && role === 'STUDENT') {
-                    // Pass the string directly to askQuestion!
                     const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
                     askQuestion(introMessage);
                 }
@@ -89,9 +89,7 @@ const ChatStreaming = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    // Added 'overridePrompt' parameter so the auto-intro doesn't rely on React state
     const askQuestion = async (overridePrompt = null) => {
-        // This handles cases where event object is passed by click handler accidentally
         const isEvent = overridePrompt && typeof overridePrompt === 'object' && overridePrompt.type;
         const textToUse = (!isEvent && overridePrompt) ? overridePrompt : inputValue;
 
@@ -126,7 +124,6 @@ const ChatStreaming = () => {
                 const formData = new FormData();
                 formData.append("file", fileToUpload);
 
-                // Attach JWT to the file upload
                 const uploadResponse = await fetch(`/api/chat/upload?rollNumber=${rollNo}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${getToken()}` },
@@ -142,7 +139,6 @@ const ChatStreaming = () => {
                     'Authorization': `Bearer ${getToken()}`,
                     'Content-Type': 'application/json',
                 },
-                // Put your giant prompt in the body!
                 body: JSON.stringify({ query: userPrompt }),
 
                 onmessage(event) {
@@ -160,14 +156,13 @@ const ChatStreaming = () => {
                 onerror(err) {
                     console.error("Stream error:", err);
                     setIsStreaming(false);
-                    throw err; // Stop retrying
+                    throw err; 
                 },
                 onclose() {
                     setIsStreaming(false);
                 }
             });
 
-        // FIXED: Re-added the missing catch block and closed the try statement
         } catch (error) {
             console.error("Error in upload/stream pipeline:", error);
             setMessages(prev => {
@@ -181,9 +176,8 @@ const ChatStreaming = () => {
             });
             setIsStreaming(false);
         }
-    }; // FIXED: Properly closed the askQuestion function here
+    }; 
 
-    // FIXED: The return block is now safely outside the askQuestion function
     return (
         <div className="chat-container">
             <div className="chat-history">
@@ -195,7 +189,8 @@ const ChatStreaming = () => {
                         <div className="message-content">
                             {msg.file && (
                                 <div className="message-file-attachment">
-                                    <span className="file-icon">📄</span>
+                                    {/* Using Dynamic SVG Icon */}
+                                    <span className="file-icon-wrapper">{getFileIcon(msg.file.name)}</span>
                                     <div className="file-info">
                                         <div className="file-name">{msg.file.name}</div>
                                         <div className="file-size">{(msg.file.size / 1024).toFixed(1)} KB</div>
@@ -216,7 +211,8 @@ const ChatStreaming = () => {
             <div className="chat-input-container">
                 {pendingFile && (
                     <div className="pending-file-preview">
-                        <span className="file-icon">📄</span>
+                        {/* Using Dynamic SVG Icon */}
+                        <span className="file-icon-wrapper">{getFileIcon(pendingFile.name)}</span>
                         <span className="pending-file-name">{pendingFile.name}</span>
                         <button className="remove-file-btn" onClick={removePendingFile}>✕</button>
                     </div>
@@ -233,8 +229,12 @@ const ChatStreaming = () => {
                         className="attach-button"
                         onClick={() => fileInputRef.current?.click()}
                         disabled={isStreaming}
+                        title="Attach File"
                     >
-                        📎
+                        {/* Premium SVG Paperclip */}
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        </svg>
                     </button>
                     <textarea
                         className="chat-input"
@@ -260,7 +260,12 @@ const ChatStreaming = () => {
                         onClick={askQuestion}
                         disabled={isStreaming}
                     >
-                        {isStreaming ? "..." : "Send"}
+                        {isStreaming ? "..." : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        )}
                     </button>
                 </div>
             </div>
