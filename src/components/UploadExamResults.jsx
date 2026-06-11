@@ -1,19 +1,18 @@
 import React, { useState, useRef } from 'react';
 import './Dashboard.css';
 import './UploadExamResults.css';
-import { getFileIcon } from '../assets/utils'; 
+
+import { getFileIcon, Icon } from '../assets/utils'; 
 
 const UploadExamResults = () => {
-    // 1. New UI States
     const [examType, setExamType] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
-    
-    // 2. New Backend Data States
     const [examIdentifier, setExamIdentifier] = useState("");
     const [isUploadSuccess, setIsUploadSuccess] = useState(false);
-
-    // 3. Process States
-    const [statusMessage, setStatusMessage] = useState("");
+    
+    // UPGRADED: Status is now an object so we can control the CSS beautifully
+    const [status, setStatus] = useState({ text: "", type: "" });
+    
     const [isUploading, setIsUploading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     
@@ -23,17 +22,15 @@ const UploadExamResults = () => {
 
     const handleExamTypeChange = (e) => {
         setExamType(e.target.value);
-        
         setSelectedFile(null);
         setExamIdentifier("");
         setIsUploadSuccess(false);
-        setStatusMessage("");
+        setStatus({ text: "", type: "" });
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        
         setIsUploadSuccess(false);
         setExamIdentifier("");
 
@@ -43,27 +40,27 @@ const UploadExamResults = () => {
         }
 
         if (!file.name.startsWith("exam_results_") || !file.name.endsWith(".csv")) {
-            setStatusMessage("⚠️ Invalid file format. File name must start with 'exam_results_' (e.g., exam_results_43499.csv)");
+            setStatus({ 
+                text: "Invalid file format. File name must start with 'exam_results_' (e.g., exam_results_43499.csv)", 
+                type: "error" 
+            });
             setSelectedFile(null);
-            
-            if (fileInputRef.current) {
-                fileInputRef.current.value = ""; 
-            }
+            if (fileInputRef.current) fileInputRef.current.value = ""; 
             return;
         }
 
         setSelectedFile(file);
-        setStatusMessage(""); 
+        setStatus({ text: "", type: "" }); 
     };
 
     const handleUpload = () => {
         if (!selectedFile || !examType) {
-            setStatusMessage("⚠️ Please select an Exam Type and a valid file first.");
+            setStatus({ text: "Please select an Exam Type and a valid file first.", type: "error" });
             return;
         }
 
         setIsUploading(true);
-        setStatusMessage("Uploading file to secure storage...");
+        setStatus({ text: "Uploading file to secure storage...", type: "loading" });
 
         const formData = new FormData();
         formData.append("file", selectedFile);
@@ -87,24 +84,27 @@ const UploadExamResults = () => {
         .then(data => {
             setExamIdentifier(data.examIdentifier);
             setIsUploadSuccess(true);
-            setStatusMessage(`✅ File uploaded successfully! (ID: ${data.examIdentifier}). Ready for database processing.`);
+            setStatus({ 
+                text: `File uploaded successfully! (ID: ${data.examIdentifier}). Ready for database processing.`, 
+                type: "success" 
+            });
             setIsUploading(false);
         })
         .catch(err => {
             console.error(err); 
-            setStatusMessage(`❌ Error uploading file: ${err.message}`);
+            setStatus({ text: `Error uploading file: ${err.message}`, type: "error" });
             setIsUploading(false);
         });
     };
 
     const handleBulkUpdate = () => {
         if (!examType || !examIdentifier) {
-            setStatusMessage("⚠️ Missing Exam parameters. Please upload the file again.");
+            setStatus({ text: "Missing Exam parameters. Please upload the file again.", type: "error" });
             return;
         }
 
         setIsProcessing(true);
-        setStatusMessage("Processing data and updating database. This may take a moment...");
+        setStatus({ text: "Processing data and updating database. This may take a moment...", type: "loading" });
 
         const bulkUrl = `/api/file/${encodeURIComponent(examType)}/${encodeURIComponent(examIdentifier)}/bulk-update`;
 
@@ -119,7 +119,7 @@ const UploadExamResults = () => {
             return res.text();
         })
         .then(message => {
-            setStatusMessage(`🎉 Success: ${message}`);
+            setStatus({ text: message, type: "success" });
             setIsProcessing(false);
             setExamType("");
             setSelectedFile(null);
@@ -130,7 +130,7 @@ const UploadExamResults = () => {
             const keysToRemove = [];
             for (let i = 0; i < sessionStorage.length; i++) {
                 const key = sessionStorage.key(i);
-                if (key && (key.startsWith('student_data_page_') || key.startsWith('student_report_'))) {
+                if (key && (key.startsWith('student_data_page_') || key.startsWith('student_report_') || key.startsWith('lb_'))) {
                     keysToRemove.push(key);
                 }
             }
@@ -139,7 +139,7 @@ const UploadExamResults = () => {
         })
         .catch(err => {
             console.error(err);
-            setStatusMessage(`❌ Processing Error: ${err.message}`); 
+            setStatus({ text: `Processing Error: ${err.message}`, type: "error" }); 
             setIsProcessing(false);
         });
     };
@@ -178,20 +178,18 @@ const UploadExamResults = () => {
                         ref={fileInputRef}
                         disabled={!examType || isUploading || isProcessing}
                     />
+                    
                     <button 
                         className="btn-outline"
                         onClick={() => fileInputRef.current.click()} 
                         disabled={!examType || isUploading || isProcessing}
                     >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{marginRight: '8px'}}>
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                        </svg>
+                        <Icon name="paperclip" size={18} />
                         Browse for File...
                     </button>
                     
                     {selectedFile && (
                         <div className="selected-file-display">
-                            {/* Dynamic SVG Icon rendering here */}
                             <span className="file-icon-wrapper">{getFileIcon(selectedFile.name)}</span>
                             <span className="file-name-text">
                                 <strong>Selected:</strong> {selectedFile.name}
@@ -204,7 +202,8 @@ const UploadExamResults = () => {
                         onClick={handleUpload} 
                         disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}
                     >
-                        {isUploading ? "Uploading... ⏳" : "Upload to Server"}
+                        {/* Emojis removed, clean text only */}
+                        {isUploading ? "Uploading..." : "Upload to Server"}
                     </button>
                 </div>
 
@@ -218,13 +217,19 @@ const UploadExamResults = () => {
                         onClick={handleBulkUpdate} 
                         disabled={!isUploadSuccess || isUploading || isProcessing}
                     >
-                        {isProcessing ? "Processing Data... ⏳" : "Push Data to Database"}
+                        {/* Emojis removed, clean text only */}
+                        {isProcessing ? "Processing Data..." : "Push Data to Database"}
                     </button>
                 </div>
 
-                {statusMessage && (
-                    <div className={`status-message ${statusMessage.includes('❌') || statusMessage.includes('⚠️') ? 'error' : ''}`}>
-                        <strong>{statusMessage}</strong>
+                {/* DYNAMIC ALERT BOX */}
+                {status.text && (
+                    <div className={`status-alert ${status.type}`}>
+                        {/* Success and Loading get matching icons. Error gets NO icon, just the smooth red background per your design! */}
+                        {status.type === 'success' && <Icon name="check" size={20} color="currentColor" />}
+                        {status.type === 'loading' && <Icon name="clock" size={20} color="currentColor" />}
+                        
+                        <strong>{status.text}</strong>
                     </div>
                 )}
             </div>

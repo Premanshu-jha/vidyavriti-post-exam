@@ -3,9 +3,7 @@ import { fetchEventSource } from '@microsoft/fetch-event-source';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './ChatStreaming.css';
-
-// Import your new utility!
-import { getFileIcon } from '../assets/utils'; 
+import { getFileIcon, Icon } from '../assets/utils'; 
 
 const ChatStreaming = () => {
     const [messages, setMessages] = useState([]);
@@ -35,7 +33,7 @@ const ChatStreaming = () => {
         })
             .then(res => res.json())
             .then(data => {
-                if (data.length === 0 && role === 'STUDENT') {
+                if (data.length === 0) {
                     const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
                     askQuestion(introMessage);
                 }
@@ -189,7 +187,6 @@ const ChatStreaming = () => {
                         <div className="message-content">
                             {msg.file && (
                                 <div className="message-file-attachment">
-                                    {/* Using Dynamic SVG Icon */}
                                     <span className="file-icon-wrapper">{getFileIcon(msg.file.name)}</span>
                                     <div className="file-info">
                                         <div className="file-name">{msg.file.name}</div>
@@ -211,7 +208,6 @@ const ChatStreaming = () => {
             <div className="chat-input-container">
                 {pendingFile && (
                     <div className="pending-file-preview">
-                        {/* Using Dynamic SVG Icon */}
                         <span className="file-icon-wrapper">{getFileIcon(pendingFile.name)}</span>
                         <span className="pending-file-name">{pendingFile.name}</span>
                         <button className="remove-file-btn" onClick={removePendingFile}>✕</button>
@@ -231,10 +227,8 @@ const ChatStreaming = () => {
                         disabled={isStreaming}
                         title="Attach File"
                     >
-                        {/* Premium SVG Paperclip */}
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                        </svg>
+                        {/* CLEAN PAPERCLIP ICON */}
+                        <Icon name="paperclip" size={20} />
                     </button>
                     <textarea
                         className="chat-input"
@@ -261,10 +255,8 @@ const ChatStreaming = () => {
                         disabled={isStreaming}
                     >
                         {isStreaming ? "..." : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="22" y1="2" x2="11" y2="13"></line>
-                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                            </svg>
+                            /* CLEAN SEND ICON */
+                            <Icon name="send" size={18} />
                         )}
                     </button>
                 </div>

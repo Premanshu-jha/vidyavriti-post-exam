@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
 
+// IMPORT YOUR GLOBAL ICON COMPONENT
+import { Icon } from '../assets/utils';
+
 const Layout = () => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [userData, setUserData] = useState(null);
     const navigate = useNavigate();
 
-    // Fetch user data from sessionStorage when the layout mounts
     useEffect(() => {
         const sessionData = sessionStorage.getItem('studentSession');
         if (sessionData) {
@@ -18,10 +20,9 @@ const Layout = () => {
     const toggleMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
     const closeMenu = () => setIsMobileMenuOpen(false);
 
-    // Handle Logout Logic
     const handleLogout = () => {
-        sessionStorage.clear(); // Wipes the token and user data
-        navigate('/login', { replace: true }); // Sends them back to login securely
+        sessionStorage.clear(); 
+        navigate('/login', { replace: true }); 
     };
 
     return (
@@ -29,12 +30,12 @@ const Layout = () => {
             
             <div className="mobile-header">
                 <button className="hamburger-btn" onClick={toggleMenu}>
-                    ☰
+                    {/* Clean Hamburger Menu Icon */}
+                    <Icon name="menu" size={24} />
                 </button>
                 <h2 className="mobile-header-title">Vidyavriti</h2>
             </div>
 
-            {/* The Sidebar Drawer */}
             <aside className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
                 <div className="sidebar-header">
                     <h2>Vidyavriti</h2>
@@ -42,24 +43,34 @@ const Layout = () => {
                 </div>
                 
                 <nav className="sidebar-nav">
-                    <NavLink to="/dashboard" onClick={closeMenu} className="nav-item">
-                        📊 Dashboard
+                    <NavLink to="/directory" onClick={closeMenu} className="nav-item">
+                        <Icon name="grid" size={20} className="nav-icon" />
+                        Student Directory
                     </NavLink>
-                    {/* Only show upload if the role is TEACHER/ADMIN, optional feature! */}
+                    
+                    <NavLink to="/leaderboard" onClick={closeMenu} className="nav-item">
+                        <Icon name="podium" size={20} className="nav-icon" />
+                        Leaderboards
+                    </NavLink>
+
                     {userData?.role !== 'STUDENT' && (
                         <NavLink to="/upload" onClick={closeMenu} className="nav-item">
-                            📤 Upload Results
+                            <Icon name="upload" size={20} className="nav-icon" />
+                            Upload Results
                         </NavLink>
                     )}
+
                     <NavLink to="/documents" onClick={closeMenu} className="nav-item">
-                        📁 Documents
+                        <Icon name="folder" size={20} className="nav-icon" />
+                        Documents
                     </NavLink>
+
                     <NavLink to="/chat" onClick={closeMenu} className="nav-item">
-                        💬 AI Assistant
+                        <Icon name="chat" size={20} className="nav-icon" />
+                        AI Assistant
                     </NavLink>
                 </nav>
 
-                {/* NEW: User Profile & Logout Section at the bottom */}
                 <div className="sidebar-footer">
                     {userData && (
                         <div className="user-info">
@@ -73,18 +84,17 @@ const Layout = () => {
                         </div>
                     )}
                     <button className="logout-btn" onClick={handleLogout}>
-                        🚪 Logout
+                        <Icon name="logout" size={20} className="nav-icon" />
+                        Logout
                     </button>
                 </div>
             </aside>
 
-            {/* The Dark Overlay for Mobile */}
             <div 
                 className={`sidebar-overlay ${isMobileMenuOpen ? 'open' : ''}`} 
                 onClick={closeMenu}
             ></div>
 
-            {/* Main Dynamic Content Area */}
             <main className="main-content">
                 <Outlet /> 
             </main>
