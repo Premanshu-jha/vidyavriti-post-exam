@@ -2,17 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './StudentReport.css'; 
 
+import { Icon } from '../assets/utils'; 
+
 const StudentReport = () => {
     const { id } = useParams(); 
     const navigate = useNavigate();
     const [reports, setReports] = useState([]); 
     const [loading, setLoading] = useState(true);
     
-    // UI States
     const [openIndices, setOpenIndices] = useState([0]); 
     const [activeTab, setActiveTab] = useState(""); 
 
-    // SECURE: Helper function to get the JWT token
     const getToken = () => sessionStorage.getItem('authToken');
 
     useEffect(() => {
@@ -29,7 +29,6 @@ const StudentReport = () => {
         
         setLoading(true);
 
-        // SECURE: Added the Authorization header to the fetch request!
         fetch(`/api/students/${id}/report`, {
             method: 'GET',
             headers: {
@@ -68,20 +67,40 @@ const StudentReport = () => {
         );
     };
 
+    // --- COLOR COORDINATION ENGINE ---
+    // Added 'baseColor' to explicitly color the SVG icons to match the bar chart gradients
     const subjectConfig = {
-        physics: { symbol: "⚛️", color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)" }, 
-        maths: { symbol: "📐", color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)" },   
-        chemistry: { symbol: "🧪", color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)" },
-        overall: { symbol: "🏆", color: "linear-gradient(180deg, #64748b 0%, #334155 100%)" }, 
-        fallback: { symbol: "📝", color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)" } 
+        physics: { 
+            symbol: <Icon name="physics" size={20} />, 
+            color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)",
+            baseColor: "#a855f7" // Vibrant Purple
+        }, 
+        maths: { 
+            symbol: <Icon name="maths" size={20} />, 
+            color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)",
+            baseColor: "#3b82f6" // Vibrant Blue
+        },   
+        chemistry: { 
+            symbol: <Icon name="chemistry" size={20} />, 
+            color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)",
+            baseColor: "#14b8a6" // Vibrant Teal
+        },
+        overall: { 
+            symbol: <Icon name="overall" size={20} />, 
+            color: "linear-gradient(180deg, #64748b 0%, #334155 100%)",
+            baseColor: "#64748b" // Slate Grey
+        }, 
+        fallback: { 
+            symbol: <Icon name="fallback" size={20} />, 
+            color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)",
+            baseColor: "#f59e0b" // Amber
+        } 
     };
 
     const studentInfo = reports.length > 0 ? reports[0].student : null;
     const availableExamTypes = [...new Set(reports.map(r => r.exam.examType || 'Uncategorized'))];
     const filteredReports = reports.filter(r => (r.exam.examType || 'Uncategorized') === activeTab);
 
-    // --- AGGREGATE CALCULATIONS FOR DASHBOARD ---
-    // 1. Find all unique subjects present in the currently filtered exams
     const globalSubjectsSet = new Set();
     filteredReports.forEach(report => {
         Object.keys(report)
@@ -90,7 +109,6 @@ const StudentReport = () => {
     });
     const activeSubjects = Array.from(globalSubjectsSet);
 
-    // 2. Calculate Averages
     let sumOverallScored = 0, sumOverallMax = 0;
     let subjectSums = {};
     activeSubjects.forEach(sub => subjectSums[sub] = { scored: 0, max: 0 });
@@ -128,9 +146,9 @@ const StudentReport = () => {
                                 <span className="profile-badge">ROLL NO: {studentInfo.rollNo}</span>
                             </div>
                             <div className="profile-details">
-                                <div className="profile-detail-item">🏫 Class {studentInfo.classNum}</div>
-                                <div className="profile-detail-item">📍 {studentInfo.city}</div>
-                                <div className="profile-detail-item">📞 {studentInfo.phone}</div>
+                                <div className="profile-detail-item"><Icon name="school" size={16} color="#94a3b8"/> Class {studentInfo.classNum}</div>
+                                <div className="profile-detail-item"><Icon name="mapPin" size={16} color="#94a3b8"/> {studentInfo.city}</div>
+                                <div className="profile-detail-item"><Icon name="phone" size={16} color="#94a3b8"/> {studentInfo.phone}</div>
                             </div>
                         </div>
                     )}
@@ -153,9 +171,11 @@ const StudentReport = () => {
                     {filteredReports.length > 0 && (
                         <>
                             <div className="averages-dashboard">
-                                {/* Overall Average Card */}
+                                {/* Matched Overall Icon Color */}
                                 <div className="average-card overall-avg">
-                                    <div className="avg-icon">{subjectConfig.overall.symbol}</div>
+                                    <div className="avg-icon">
+                                        {React.cloneElement(subjectConfig.overall.symbol, { color: subjectConfig.overall.baseColor })}
+                                    </div>
                                     <div className="avg-details">
                                         <h4>Overall Average</h4>
                                         <div className="avg-score">{avgOverallScored} <span className="max-score">/ {avgOverallMax}</span></div>
@@ -172,7 +192,10 @@ const StudentReport = () => {
 
                                     return (
                                         <div key={sub} className="average-card">
-                                            <div className="avg-icon">{config.symbol}</div>
+                                            <div className="avg-icon">
+                                                {/* Matched Subject Icon Color */}
+                                                {React.cloneElement(config.symbol, { color: config.baseColor })}
+                                            </div>
                                             <div className="avg-details">
                                                 <h4>{subName} Avg</h4>
                                                 <div className="avg-score">{avgScored} <span className="max-score">/ {avgMax}</span></div>
@@ -183,7 +206,6 @@ const StudentReport = () => {
                                 })}
                             </div>
 
-                            {/* --- UPGRADED: SEPARATE SUBJECT CHARTS --- */}
                             {filteredReports.length > 1 && (
                                 <div className="charts-container">
                                     {['overall', ...activeSubjects].map(subject => {
@@ -191,9 +213,12 @@ const StudentReport = () => {
                                         const config = isOverall ? subjectConfig.overall : (subjectConfig[subject] || subjectConfig.fallback);
                                         const title = isOverall ? "Overall Trend" : `${subject.charAt(0).toUpperCase() + subject.slice(1)} Trend`;
 
+                                        // Matched Chart Title Icon Color
+                                        const ChartIcon = React.cloneElement(config.symbol, { color: config.baseColor });
+
                                         return (
                                             <div key={subject} className="exam-card trend-card">
-                                                <h3>{config.symbol} {title}</h3>
+                                                <h3>{ChartIcon} {title}</h3>
                                                 
                                                 <div className="css-bar-chart">
                                                     {filteredReports.map((report, idx) => {
@@ -228,10 +253,13 @@ const StudentReport = () => {
                                     .filter(key => key.endsWith('AttemptedQuestions') && key !== 'totalAttemptedQuestions')
                                     .map(key => {
                                         const prefix = key.replace('AttemptedQuestions', ''); 
+                                        const config = subjectConfig[prefix] || subjectConfig.fallback;
+                                        
                                         return {
                                             prefix: prefix,
                                             name: prefix.charAt(0).toUpperCase() + prefix.slice(1), 
-                                            symbol: (subjectConfig[prefix] || subjectConfig.fallback).symbol 
+                                            // Matched Table Icon Color
+                                            symbol: React.cloneElement(config.symbol, { color: config.baseColor, size: 14 })
                                         };
                                     });
 
@@ -242,7 +270,7 @@ const StudentReport = () => {
                                                 <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}>&#9654;</span>
                                                 <h3>{report.exam.examIdentifier}</h3>
                                                 <div className="accordion-summary-tags">
-                                                    <span>🗓️ {examDate}</span>
+                                                    <span><Icon name="calendar" size={14} color="#64748b"/> {examDate}</span>
                                                     <span className="rank-badge-header">Rank: #{report.rank}</span>
                                                     <span>Score: {report.totalMarks}/{report.exam.examTotalMarks}</span>
                                                 </div>
@@ -253,11 +281,11 @@ const StudentReport = () => {
                                             <div className="accordion-body-inner">
                                                 <div className="accordion-body">
                                                     <div className="exam-meta accordion-meta">
-                                                        <span><strong>▶️ Start:</strong> {startTime}</span>
-                                                        <span><strong>⏹️ End:</strong> {endTime}</span>
-                                                        <span><strong>⏱️ Total Time:</strong> {report.totalTimeSpent}</span>
-                                                        <span><strong>🚪 Time Outside:</strong> {report.timeOutside}</span>
-                                                        <span><strong>👥 Participants:</strong> {report.exam.totalStudentsAttempted}</span>
+                                                        <span><strong><Icon name="play" size={14} color="#10b981"/> Start:</strong> {startTime}</span>
+                                                        <span><strong><Icon name="stop" size={14} color="#ef4444"/> End:</strong> {endTime}</span>
+                                                        <span><strong><Icon name="clock" size={14} color="#3b82f6"/> Total Time:</strong> {report.totalTimeSpent}</span>
+                                                        <span><strong><Icon name="door" size={14} color="#f59e0b"/> Time Outside:</strong> {report.timeOutside}</span>
+                                                        <span><strong><Icon name="users" size={14} color="#8b5cf6"/> Participants:</strong> {report.exam.totalStudentsAttempted}</span>
                                                     </div>
 
                                                     <div className="table-responsive">
@@ -297,7 +325,8 @@ const StudentReport = () => {
                                                                 ))}
 
                                                                 <tr className="summary-row">
-                                                                    <td>🏆 OVERALL</td>
+                                                                    {/* Matched Overall Summary Row Icon Color */}
+                                                                    <td><Icon name="overall" size={14} color={subjectConfig.overall.baseColor}/> OVERALL</td>
                                                                     <td>{report.totalAttemptedQuestions}</td>
                                                                     <td className="text-success">{report.totalCorrectAnswers}</td>
                                                                     <td className="text-danger">{report.totalWrongAnswers}</td>

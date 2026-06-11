@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './DocumentViewer.css'; 
-import { getFileIcon } from '../assets/utils';
+import { getFileIcon, Icon } from '../assets/utils';
 
 const DocumentViewer = () => {
     const [files, setFiles] = useState([]);
@@ -77,9 +77,8 @@ const DocumentViewer = () => {
             <div className="doc-header">
                 <h2>Document Repository</h2>
                 <button className="btn-secondary header-refresh-btn" onClick={fetchFiles}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.59-11.1l1.75 1.53"></path>
-                    </svg>
+                    {/* 2. REPLACED SVG WITH ICON */}
+                    <Icon name="refresh" size={16} />
                     Refresh List
                 </button>
             </div>
@@ -104,7 +103,7 @@ const DocumentViewer = () => {
                                 <tr key={file.id}>
                                     <td>
                                         <div className="filename-wrapper">
-                                            {/* Using your imported util function here! */}
+                                            {/* Using your custom file extension icon generator */}
                                             {getFileIcon(file.fileName)}
                                             <span className="filename-text">{file.fileName}</span>
                                         </div>
@@ -119,11 +118,8 @@ const DocumentViewer = () => {
                                                 onClick={() => handleDownload(file.id)}
                                                 title="Download File"
                                             >
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                                    <polyline points="7 10 12 15 17 10"></polyline>
-                                                    <line x1="12" y1="15" x2="12" y2="3"></line>
-                                                </svg>
+                                                {/* 3. REPLACED DOWNLOAD SVG WITH ICON */}
+                                                <Icon name="download" size={18} />
                                                 Download
                                             </button>
                                             <button 
@@ -131,10 +127,8 @@ const DocumentViewer = () => {
                                                 onClick={() => handleDelete(file.id, file.fileName)}
                                                 title="Delete File"
                                             >
-                                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                                </svg>
+                                                {/* 4. REPLACED TRASH SVG WITH ICON */}
+                                                <Icon name="trash" size={18} />
                                             </button>
                                         </div>
                                     </td>

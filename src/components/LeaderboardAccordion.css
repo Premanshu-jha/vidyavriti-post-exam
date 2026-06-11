@@ -1,0 +1,261 @@
+/* --- MAIN ACCORDION CARD --- */
+.lb-accordion-item {
+    background: var(--bg-card);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    border: 1px solid var(--border-light);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+}
+
+.lb-accordion-item:hover {
+    border-color: var(--primary-teal);
+    box-shadow: 0 4px 12px rgba(25, 159, 166, 0.1);
+}
+
+.lb-accordion-item.open {
+    border-color: var(--primary-teal);
+    box-shadow: 0 8px 24px rgba(11, 34, 65, 0.08);
+}
+
+/* --- THE CLICKABLE HEADER --- */
+.lb-accordion-header {
+    width: 100%;
+    padding: 20px 24px;
+    background: transparent;
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.lb-header-info {
+    display: flex;
+    align-items: center;
+}
+
+.lb-header-info h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--primary-dark);
+}
+
+.lb-icon {
+    display: inline-block;
+    margin-right: 12px;
+    font-size: 0.9rem;
+    color: var(--primary-teal);
+    transition: transform 0.3s ease;
+}
+
+.lb-icon.open {
+    transform: rotate(90deg);
+}
+
+.lb-header-meta {
+    background: var(--bg-main);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* --- ACCORDION BODY & ANIMATION --- */
+.lb-accordion-body {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lb-accordion-body.open {
+    grid-template-rows: 1fr;
+}
+
+.lb-accordion-content {
+    min-height: 0;
+    overflow: hidden;
+    padding: 0 24px 24px 24px;
+}
+
+/* --- FILTER BAR & INPUTS --- */
+.lb-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: var(--bg-main);
+    padding: 16px;
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-bottom: 24px;
+    align-items: center;
+    border: 1px dashed var(--border-light);
+}
+
+.lb-filter-group {
+    display: flex;
+    align-items: center;
+}
+
+.lb-filter-bar input, .lb-filter-bar select {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background-color: var(--bg-card);
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.lb-filter-bar input:focus, .lb-filter-bar select:focus {
+    border-color: var(--primary-teal);
+    box-shadow: 0 0 0 3px rgba(25, 159, 166, 0.15);
+}
+
+/* --- BUTTONS --- */
+.btn-filter, .btn-secondary {
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-filter {
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+}
+
+.btn-filter:hover {
+    background-color: var(--primary-teal);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: var(--bg-main);
+    color: var(--text-dark);
+    border: 1px solid var(--border-light);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: var(--border-light);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* --- DATA TABLE --- */
+.data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.data-table th {
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 14px 20px;
+    text-align: left;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.data-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text-dark);
+}
+
+.score-col {
+    text-align: right !important;
+}
+
+.highlight-score {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--primary-dark);
+}
+
+.max-score {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+/* --- PODIUM BADGES --- */
+.lb-rank-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.lb-rank-badge.gold {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #b45309;
+    box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+}
+
+.lb-rank-badge.silver {
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    color: #475569;
+    box-shadow: 0 2px 4px rgba(100, 116, 139, 0.2);
+}
+
+.lb-rank-badge.bronze {
+    background: linear-gradient(135deg, #ffedd5, #fed7aa);
+    color: #9a3412;
+    box-shadow: 0 2px 4px rgba(217, 119, 6, 0.2);
+}
+
+.lb-rank-badge.standard {
+    background-color: var(--bg-main);
+    color: var(--text-muted);
+}
+
+.top-tier-row td {
+    background-color: rgba(25, 159, 166, 0.04);
+}
+
+.accuracy-badge {
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+.accuracy-badge.high { background-color: #dcfce7; color: #166534; }
+.accuracy-badge.med { background-color: #fef9c3; color: #854d0e; }
+.accuracy-badge.low { background-color: #fee2e2; color: #991b1b; }
+
+/* --- PAGINATION --- */
+.lb-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-light);
+}
+
+.page-indicator {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.lb-status {
+    text-align: center;
+    padding: 30px;
+    color: var(--text-muted);
+}

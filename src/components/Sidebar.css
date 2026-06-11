@@ -1,12 +1,12 @@
 /* Sidebar.css - VIDYAVRITI THEME */
 
 :root {
-    --primary-dark: #0b2241;   /* Deep Navy */
-    --primary-teal: #199fa6;   /* Vibrant Teal */
+    --primary-dark: #0b2241;   
+    --primary-teal: #199fa6;   
     --bg-light: #f4f7f6;
     --error-red: #d9534f;
     --white: #ffffff;
-    --sidebar-darker: #07162c; /* Slightly darker than primary-dark for the footer anchor */
+    --sidebar-darker: #07162c; 
 }
 
 .app-wrapper {
@@ -31,7 +31,7 @@
     height: 100vh;
     z-index: 1000;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 4px 0 15px rgba(11, 34, 65, 0.15); /* Navy shadow */
+    box-shadow: 4px 0 15px rgba(11, 34, 65, 0.15); 
 }
 
 .sidebar-header {
@@ -50,7 +50,7 @@
 }
 
 .close-btn {
-    display: none; /* Hidden on desktop */
+    display: none; 
     background: none;
     border: none;
     color: var(--white);
@@ -65,13 +65,13 @@
     display: flex;
     flex-direction: column;
     gap: 5px;
-    flex-grow: 1; /* Pushes the footer to the bottom! */
+    flex-grow: 1; 
     overflow-y: auto; 
 }
 
 .nav-item {
     padding: 15px 25px;
-    color: #a0b2c6; /* Soft blue-gray for unselected text */
+    color: #a0b2c6; 
     text-decoration: none;
     font-size: 1.05rem;
     font-weight: 500;
@@ -81,16 +81,23 @@
     transition: all 0.2s ease;
 }
 
+/* NEW: SVG Icon Styling */
+.nav-icon {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    transition: color 0.2s ease;
+}
+
 .nav-item:hover {
-    background-color: rgba(25, 159, 166, 0.1); /* Faint teal highlight */
+    background-color: rgba(25, 159, 166, 0.1); 
     color: var(--white);
 }
 
-/* React Router automatically applies this class to the active route! */
 .nav-item.active {
     background-color: var(--primary-teal);
     color: var(--white);
-    border-left: 4px solid #8ce3e8; /* Lighter teal for the active border */
+    border-left: 4px solid #8ce3e8; 
 }
 
 /* --- Sidebar Footer & Profile --- */
@@ -154,7 +161,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    background-color: rgba(217, 83, 79, 0.1); /* Faint red */
+    background-color: rgba(217, 83, 79, 0.1); 
     color: #ff6b6b; 
     border: 1px solid rgba(217, 83, 79, 0.3);
     padding: 10px;
@@ -201,6 +208,8 @@
     font-size: 1.8rem;
     cursor: pointer;
     padding: 0;
+    display: flex; /* Helps align the SVG perfectly */
+    align-items: center;
 }
 
 /* --- The Mobile Overlay --- */
@@ -211,7 +220,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(11, 34, 65, 0.5); /* Navy tinted blur */
+    background: rgba(11, 34, 65, 0.5); 
     z-index: 950;
     backdrop-filter: blur(2px);
 }
