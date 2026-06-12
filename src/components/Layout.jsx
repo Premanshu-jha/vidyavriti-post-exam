@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import './Sidebar.css';
-
-// IMPORT YOUR GLOBAL ICON COMPONENT
 import { Icon } from '../assets/utils';
 
 const Layout = () => {
@@ -43,11 +41,22 @@ const Layout = () => {
                 </div>
                 
                 <nav className="sidebar-nav">
-                    <NavLink to="/directory" onClick={closeMenu} className="nav-item">
-                        <Icon name="grid" size={20} className="nav-icon" />
-                        Student Directory
-                    </NavLink>
                     
+                    {/* --- DYNAMIC ROLE-BASED NAVIGATION --- */}
+                    {userData?.role !== 'STUDENT' ? (
+                        <NavLink to="/directory" onClick={closeMenu} className="nav-item">
+                            <Icon name="grid" size={20} className="nav-icon" />
+                            Student Directory
+                        </NavLink>
+                    ) : (
+                        <NavLink to={`/student/${userData?.id}/report`} onClick={closeMenu} className="nav-item">
+                            {/* Uses the new Report icon we just added to utils.jsx! */}
+                            <Icon name="report" size={20} className="nav-icon" />
+                            My Report
+                        </NavLink>
+                    )}
+                    {/* --------------------------------------- */}
+
                     <NavLink to="/leaderboard" onClick={closeMenu} className="nav-item">
                         <Icon name="podium" size={20} className="nav-icon" />
                         Leaderboards
