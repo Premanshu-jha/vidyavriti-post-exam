@@ -14,7 +14,7 @@ const StudentList = () => {
         const parsed = parseInt(savedPage, 10);
         return isNaN(parsed) ? 0 : parsed;
     }); 
-    const [pageSize] = useState(12); // Increased to 12 so the grid looks balanced (3 or 4 columns)
+    const [pageSize] = useState(12);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -24,7 +24,7 @@ const StudentList = () => {
     
     // --- Edit & Add State ---
     const [isAdding, setIsAdding] = useState(false);
-    const [addFormData, setAddFormData] = useState({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT' });
+    const [addFormData, setAddFormData] = useState({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT', smsOtpByPass: false });
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
 
@@ -41,9 +41,7 @@ const StudentList = () => {
 
         let url = `/api/students?pageNumber=${currentPage}&pageSize=${pageSize}`;
         
-        // Append filters if they are actively selected and filled
         if (filterType !== 'All' && filterValue.trim() !== '') {
-            // Mapping filter type to the exact query param your backend expects
             const queryParam = filterType === 'rollNumber' ? 'rollNumber' : filterType; 
             url += `&${queryParam}=${encodeURIComponent(filterValue)}`;
         }
@@ -69,14 +67,13 @@ const StudentList = () => {
         });
     }, [pageNumber, pageSize, filterType, filterValue]);
 
-    // Initial load & pagination triggers
     useEffect(() => {
         fetchStudents();
     }, [pageNumber]);
 
     // --- Event Handlers ---
     const handleFilterApply = () => {
-        fetchStudents(true); // Reset to page 0 when applying a new filter
+        fetchStudents(true); 
     };
 
     const handleEditClick = (student) => {
@@ -85,13 +82,13 @@ const StudentList = () => {
     };
 
     const handleEditChange = (e) => {
-        setEditFormData({ ...editFormData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setEditFormData({ ...editFormData, [e.target.name]: value });
     };
 
     const saveEdit = (id) => {
-        // NOTE: Ensure your Spring Boot backend has a PUT mapping for /api/students/{id}
         fetch(`/api/students/${id}`, {
-            method: 'PUT',
+            method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${getToken()}`,
                 'Content-Type': 'application/json'
@@ -100,17 +97,17 @@ const StudentList = () => {
         }).then(res => {
             if(res.ok) {
                 setEditingId(null);
-                fetchStudents(); // Refresh data
+                fetchStudents(); 
             }
         });
     };
 
     const handleAddChange = (e) => {
-        setAddFormData({ ...addFormData, [e.target.name]: e.target.value });
+        const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+        setAddFormData({ ...addFormData, [e.target.name]: value });
     };
 
     const saveNewStudent = () => {
-        // NOTE: Ensure your Spring Boot backend has a POST mapping for /api/students
         fetch(`/api/students`, {
             method: 'POST',
             headers: {
@@ -121,8 +118,8 @@ const StudentList = () => {
         }).then(res => {
             if(res.ok) {
                 setIsAdding(false);
-                setAddFormData({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT' });
-                fetchStudents(true); // Jump to page 0 to see the new addition
+                setAddFormData({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT', smsOtpByPass: false });
+                fetchStudents(true); 
             }
         });
     };
@@ -143,11 +140,23 @@ const StudentList = () => {
                     <label>Filter By:</label>
                     <select value={filterType} onChange={(e) => { setFilterType(e.target.value); setFilterValue(''); }}>
                         <option value="All">All</option>
+                        <option value="name">Name</option>
                         <option value="city">City</option>
                         <option value="rollNumber">Roll Number</option>
                         <option value="role">Role</option>
                     </select>
                 </div>
+
+                {filterType === 'name' && (
+                    <div className="filter-group">
+                        <input 
+                            type="text" 
+                            placeholder="Enter Name..." 
+                            value={filterValue} 
+                            onChange={(e) => setFilterValue(e.target.value)} 
+                        />
+                    </div>
+                )}
 
                 {filterType === 'city' && (
                     <div className="filter-group">
@@ -180,12 +189,12 @@ const StudentList = () => {
                             <option value="" disabled>Select Role...</option>
                             <option value="STUDENT">Student</option>
                             <option value="ADMIN">Admin</option>
+                            <option value="TEACHER">Teacher</option>
                         </select>
                     </div>
                 )}
 
                 <button className="btn-filter" onClick={handleFilterApply} title="Apply Filter">
-                    {/* SVG Funnel Icon */}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
@@ -199,7 +208,7 @@ const StudentList = () => {
             ) : (
                 <div className="cards-grid">
                     
-                    {/* The Add New Card (Conditionally Rendered) */}
+                    {/* The Add New Card */}
                     {isAdding && (
                         <div className="student-card add-mode">
                             <div className="card-header">
@@ -213,8 +222,24 @@ const StudentList = () => {
                                 <input name="phone" placeholder="Phone" value={addFormData.phone} onChange={handleAddChange} />
                                 <select name="role" value={addFormData.role} onChange={handleAddChange}>
                                     <option value="STUDENT">Student</option>
+                                    <option value="TEACHER">Teacher</option>
                                     <option value="ADMIN">Admin</option>
                                 </select>
+                                
+                                {/* --- NEW TOGGLE SWITCH (ADD MODE) --- */}
+                                <div className="toggle-switch-container">
+                                    <span className="toggle-switch-label">Bypass SMS OTP</span>
+                                    <label className="toggle-switch">
+                                        <input 
+                                            type="checkbox" 
+                                            name="smsOtpByPass" 
+                                            checked={addFormData.smsOtpByPass} 
+                                            onChange={handleAddChange} 
+                                        />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                </div>
+
                                 <button className="btn-primary full-width" onClick={saveNewStudent}>Save Student</button>
                             </div>
                         </div>
@@ -242,8 +267,24 @@ const StudentList = () => {
                                         <input name="phone" value={editFormData.phone} onChange={handleEditChange} placeholder="Phone" />
                                         <select name="role" value={editFormData.role} onChange={handleEditChange}>
                                             <option value="STUDENT">Student</option>
+                                            <option value="TEACHER">Teacher</option>
                                             <option value="ADMIN">Admin</option>
                                         </select>
+                                        
+                                        {/* --- NEW TOGGLE SWITCH (EDIT MODE) --- */}
+                                        <div className="toggle-switch-container">
+                                            <span className="toggle-switch-label">Bypass SMS OTP</span>
+                                            <label className="toggle-switch">
+                                                <input 
+                                                    type="checkbox" 
+                                                    name="smsOtpByPass" 
+                                                    checked={editFormData.smsOtpByPass || false} 
+                                                    onChange={handleEditChange} 
+                                                />
+                                                <span className="toggle-slider"></span>
+                                            </label>
+                                        </div>
+
                                         <button className="btn-success full-width" onClick={() => saveEdit(student.id)}>Save Changes</button>
                                         <button className="btn-secondary full-width" onClick={() => setEditingId(null)}>Cancel</button>
                                     </div>
@@ -260,10 +301,16 @@ const StudentList = () => {
                                         <p><strong>Class:</strong> {student.classNum}</p>
                                         <p><strong>City:</strong> {student.city}</p>
                                         <p><strong>Phone:</strong> {student.phone}</p>
+                                        
+                                        {student.smsOtpByPass && (
+                                            <p style={{ color: '#d9534f', fontSize: '0.85rem', fontWeight: 'bold', margin: '4px 0' }}>
+                                                * SMS OTP Bypassed
+                                            </p>
+                                        )}
+                                        
                                         <span className={`role-badge ${student.role === 'ADMIN' ? 'admin' : ''}`}>{student.role}</span>
                                     </div>
                                     <div className="card-footer">
-                                        {/* View Report is ONLY visible for Students */}
                                         {student.role === 'STUDENT' ? (
                                             <button 
                                                 className="btn-primary"
@@ -272,7 +319,7 @@ const StudentList = () => {
                                                 View Report
                                             </button>
                                         ) : (
-                                            <span className="no-report-text">System Admin</span>
+                                            <span className="no-report-text">System Admin/Teacher</span>
                                         )}
                                     </div>
                                 </>
@@ -282,7 +329,6 @@ const StudentList = () => {
                 </div>
             )}
 
-            {/* Pagination remains the same, just restyled slightly */}
             <div className="pagination-controls">
                 <button className="btn-secondary" disabled={pageNumber === 0} onClick={() => setPageNumber(prev => prev - 1)}>
                     &#9664; Prev
