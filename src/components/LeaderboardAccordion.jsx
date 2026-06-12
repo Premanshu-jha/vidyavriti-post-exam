@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './LeaderboardAccordion.css';
 import { smartCacheGet, smartCacheSet } from '../utils/cacheManager';
 
+// IMPORT THE UNIFIED ICON SYSTEM
+import { Icon } from '../assets/utils'; 
+
 const COACHING_CITIES = [
     'Kota', 'Hyderabad', 'Delhi', 'Pune', 'Bangalore', 
     'Chennai', 'Mumbai', 'Jaipur', 'Patna', 'Chandigarh'
@@ -59,10 +62,11 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
         fetchLeaderboard(true);
     };
 
+    // REPLACED EMOJIS WITH CLEAN AWARD ICONS
     const getRankBadge = (rank) => {
-        if (rank === 1) return <span className="lb-rank-badge gold">🥇 1st</span>;
-        if (rank === 2) return <span className="lb-rank-badge silver">🥈 2nd</span>;
-        if (rank === 3) return <span className="lb-rank-badge bronze">🥉 3rd</span>;
+        if (rank === 1) return <span className="lb-rank-badge gold"><Icon name="award" size={14} color="currentColor" /> 1st</span>;
+        if (rank === 2) return <span className="lb-rank-badge silver"><Icon name="award" size={14} color="currentColor" /> 2nd</span>;
+        if (rank === 3) return <span className="lb-rank-badge bronze"><Icon name="award" size={14} color="currentColor" /> 3rd</span>;
         return <span className="lb-rank-badge standard">#{rank}</span>;
     };
 
@@ -70,7 +74,10 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
         <div className={`lb-accordion-item ${isOpen ? 'open' : ''}`}>
             <button className="lb-accordion-header" onClick={onToggle}>
                 <div className="lb-header-info">
-                    <span className={`lb-icon ${isOpen ? 'open' : ''}`}>&#9654;</span>
+                    {/* REPLACED HTML ARROW WITH CHEVRON ICON */}
+                    <span className={`lb-icon ${isOpen ? 'open' : ''}`}>
+                        <Icon name="chevronRight" size={16} />
+                    </span>
                     <h3>{exam.examIdentifier}</h3>
                 </div>
                 <div className="lb-header-meta">
@@ -133,15 +140,17 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
                         )}
 
                         <button className="btn-filter" onClick={handleFilterApply} title="Apply Filter">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                            </svg>
+                            {/* REPLACED RAW SVG WITH FILTER ICON */}
+                            <Icon name="filter" size={16} color="currentColor" />
                             Filter
                         </button>
                     </div>
 
+                    {/* REPLACED EMOJI WITH CLOCK ICON */}
                     {loading ? (
-                        <div className="lb-status">Fetching ranks... ⏳</div>
+                        <div className="lb-status">
+                            <Icon name="clock" size={18} /> Fetching ranks...
+                        </div>
                     ) : leaderboardData.length === 0 ? (
                         <div className="lb-status">No students found for this filter.</div>
                     ) : (
@@ -187,12 +196,13 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
                             </div>
 
                             <div className="pagination-controls lb-pagination">
+                                {/* REPLACED HTML ARROWS WITH CHEVRON ICONS */}
                                 <button className="btn-secondary" disabled={pageNumber === 0} onClick={() => setPageNumber(p => p - 1)}>
-                                    &#9664; Prev
+                                    <Icon name="chevronLeft" size={14} color="currentColor" /> Prev
                                 </button>
                                 <span className="page-indicator">Page {pageNumber + 1}</span>
                                 <button className="btn-secondary" disabled={leaderboardData.length < pageSize} onClick={() => setPageNumber(p => p + 1)}>
-                                    Next &#9654;
+                                    Next <Icon name="chevronRight" size={14} color="currentColor" />
                                 </button>
                             </div>
                         </>
