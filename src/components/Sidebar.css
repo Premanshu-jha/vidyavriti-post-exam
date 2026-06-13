@@ -9,6 +9,12 @@
     --sidebar-darker: #07162c; 
 }
 
+/* --- OVERRIDE DEFAULT BROWSER MARGINS --- */
+body {
+    margin: 0;
+    padding: 0;
+}
+
 .app-wrapper {
     display: flex;
     min-height: 100vh;
@@ -28,6 +34,8 @@
     display: flex;
     flex-direction: column;
     position: fixed;
+    top: 0;     /* FIX: Snaps sidebar to the top */
+    left: 0;    /* FIX: Snaps sidebar to the left edge */
     height: 100vh;
     z-index: 1000;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -81,7 +89,6 @@
     transition: all 0.2s ease;
 }
 
-/* NEW: SVG Icon Styling */
 .nav-icon {
     width: 20px;
     height: 20px;
@@ -182,7 +189,7 @@
 .main-content {
     flex: 1;
     margin-left: 260px; 
-    padding: 20px;
+    /* FIX: Removed padding to prevent double-padding with page containers */
     min-height: 100vh;
 }
 
@@ -197,6 +204,7 @@
     position: fixed;
     width: 100%;
     top: 0;
+    left: 0;
     z-index: 900;
     box-shadow: 0 2px 5px rgba(11, 34, 65, 0.2);
 }
@@ -208,7 +216,7 @@
     font-size: 1.8rem;
     cursor: pointer;
     padding: 0;
-    display: flex; /* Helps align the SVG perfectly */
+    display: flex; 
     align-items: center;
 }
 
@@ -250,7 +258,6 @@
     .main-content {
         margin-left: 0; 
         margin-top: 60px; 
-        padding: 15px;
         min-height: calc(100vh - 60px);
     }
 }

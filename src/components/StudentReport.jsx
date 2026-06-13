@@ -67,33 +67,31 @@ const StudentReport = () => {
         );
     };
 
-    // --- COLOR COORDINATION ENGINE ---
-    // Added 'baseColor' to explicitly color the SVG icons to match the bar chart gradients
     const subjectConfig = {
         physics: { 
             symbol: <Icon name="physics" size={20} />, 
             color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)",
-            baseColor: "#a855f7" // Vibrant Purple
+            baseColor: "#a855f7" 
         }, 
         maths: { 
             symbol: <Icon name="maths" size={20} />, 
             color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)",
-            baseColor: "#3b82f6" // Vibrant Blue
+            baseColor: "#3b82f6" 
         },   
         chemistry: { 
             symbol: <Icon name="chemistry" size={20} />, 
             color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)",
-            baseColor: "#14b8a6" // Vibrant Teal
+            baseColor: "#14b8a6" 
         },
         overall: { 
             symbol: <Icon name="overall" size={20} />, 
             color: "linear-gradient(180deg, #64748b 0%, #334155 100%)",
-            baseColor: "#64748b" // Slate Grey
+            baseColor: "#64748b" 
         }, 
         fallback: { 
             symbol: <Icon name="fallback" size={20} />, 
             color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)",
-            baseColor: "#f59e0b" // Amber
+            baseColor: "#f59e0b" 
         } 
     };
 
@@ -130,11 +128,15 @@ const StudentReport = () => {
     return (
         <div className="dashboard-container">
             <button className="btn-secondary" onClick={() => navigate(-1)}>
-                &#9664; Back to Directory
+                <Icon name="chevronLeft" size={14} /> Back to Directory
             </button>
 
+            {/* --- RESTORED RAW CSS SPINNER --- */}
             {loading ? (
-                <div className="status-message"><p>Loading exam data... ⏳</p></div>
+                <div className="status-message loading-status">
+                    <div className="spinner"></div>
+                    <span>Loading exam data...</span>
+                </div>
             ) : reports.length === 0 ? (
                 <div className="status-message"><p>No exams found for this student.</p></div>
             ) : (
@@ -171,7 +173,6 @@ const StudentReport = () => {
                     {filteredReports.length > 0 && (
                         <>
                             <div className="averages-dashboard">
-                                {/* Matched Overall Icon Color */}
                                 <div className="average-card overall-avg">
                                     <div className="avg-icon">
                                         {React.cloneElement(subjectConfig.overall.symbol, { color: subjectConfig.overall.baseColor })}
@@ -193,7 +194,6 @@ const StudentReport = () => {
                                     return (
                                         <div key={sub} className="average-card">
                                             <div className="avg-icon">
-                                                {/* Matched Subject Icon Color */}
                                                 {React.cloneElement(config.symbol, { color: config.baseColor })}
                                             </div>
                                             <div className="avg-details">
@@ -213,7 +213,6 @@ const StudentReport = () => {
                                         const config = isOverall ? subjectConfig.overall : (subjectConfig[subject] || subjectConfig.fallback);
                                         const title = isOverall ? "Overall Trend" : `${subject.charAt(0).toUpperCase() + subject.slice(1)} Trend`;
 
-                                        // Matched Chart Title Icon Color
                                         const ChartIcon = React.cloneElement(config.symbol, { color: config.baseColor });
 
                                         return (
@@ -258,7 +257,6 @@ const StudentReport = () => {
                                         return {
                                             prefix: prefix,
                                             name: prefix.charAt(0).toUpperCase() + prefix.slice(1), 
-                                            // Matched Table Icon Color
                                             symbol: React.cloneElement(config.symbol, { color: config.baseColor, size: 14 })
                                         };
                                     });
@@ -267,7 +265,9 @@ const StudentReport = () => {
                                     <div key={index} className="accordion-item">
                                         <button className="accordion-header" onClick={() => toggleAccordion(index)}>
                                             <div className="accordion-title-area">
-                                                <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}>&#9654;</span>
+                                                <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}>
+                                                    <Icon name="chevronRight" size={16} />
+                                                </span>
                                                 <h3>{report.exam.examIdentifier}</h3>
                                                 <div className="accordion-summary-tags">
                                                     <span><Icon name="calendar" size={14} color="#64748b"/> {examDate}</span>
@@ -325,7 +325,6 @@ const StudentReport = () => {
                                                                 ))}
 
                                                                 <tr className="summary-row">
-                                                                    {/* Matched Overall Summary Row Icon Color */}
                                                                     <td><Icon name="overall" size={14} color={subjectConfig.overall.baseColor}/> OVERALL</td>
                                                                     <td>{report.totalAttemptedQuestions}</td>
                                                                     <td className="text-success">{report.totalCorrectAnswers}</td>

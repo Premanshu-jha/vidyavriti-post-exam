@@ -360,3 +360,48 @@ input:checked + .toggle-slider:before {
     font-weight: 600;
     color: var(--primary-dark);
 }
+
+.loading-status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    padding: 60px 20px;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(25, 159, 166, 0.15); /* Faint teal ring */
+    border-top: 4px solid var(--primary-teal);  /* Solid teal spinning edge */
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.loading-status span {
+    color: var(--primary-dark);
+    font-weight: 500;
+    font-size: 1.1rem;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* =========================================
+   --- Mobile Responsiveness Fix --- 
+   ========================================= */
+@media (max-width: 600px) {
+    .grid-header {
+        flex-direction: column;
+        align-items: flex-start; /* Aligns both the title and the button to the left */
+        gap: 15px; /* Adds breathing room between the title and button */
+    }
+
+    /* Make the button take up the full width on mobile for easier tapping */
+    .grid-header .btn-success {
+        width: 100%;
+    }
+}

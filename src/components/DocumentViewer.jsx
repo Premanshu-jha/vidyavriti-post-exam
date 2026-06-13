@@ -83,8 +83,12 @@ const DocumentViewer = () => {
                 </button>
             </div>
 
+            {/* --- RESTORED RAW CSS SPINNER --- */}
             {loading ? (
-                <div className="status-message"><p>Loading documents... ⏳</p></div>
+                <div className="status-message loading-status">
+                    <div className="spinner"></div>
+                    <span>Loading documents...</span>
+                </div>
             ) : files.length === 0 ? (
                 <div className="status-message"><p>No documents have been uploaded yet.</p></div>
             ) : (

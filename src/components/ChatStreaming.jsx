@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { fetchEventSource } from '@microsoft/fetch-event-source';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './ChatStreaming.css';
@@ -13,6 +12,8 @@ const ChatStreaming = () => {
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+    
+    const hasInitialized = useRef(false);
 
     const sessionData = JSON.parse(sessionStorage.getItem("studentSession") || "{}");
     const { name, role, rollNo } = sessionData;
@@ -33,34 +34,39 @@ const ChatStreaming = () => {
         })
             .then(res => res.json())
             .then(data => {
+                
                 if (data.length === 0) {
-                    const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
-                    askQuestion(introMessage);
-                }
-
-                const processedHistory = data.map(msg => {
-                    if (msg.type === 'USER' && msg.content) {
-                        const matchWithSize = msg.content.match(/^\[Attached: (.*?) \| Size: (\d+)\]\n\n/);
-                        const matchOld = msg.content.match(/^\[Attached: (.*?)\]\n\n/);
-
-                        if (matchWithSize) {
-                            return {
-                                ...msg,
-                                content: msg.content.replace(matchWithSize[0], ''),
-                                file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) }
-                            };
-                        } else if (matchOld) {
-                            return {
-                                ...msg,
-                                content: msg.content.replace(matchOld[0], ''),
-                                file: { name: matchOld[1], size: null }
-                            };
-                        }
+                    if (!hasInitialized.current) {
+                        hasInitialized.current = true;
+                        const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
+                        askQuestion(introMessage);
                     }
-                    return msg;
-                });
+                } else {
+                    const processedHistory = data.map(msg => {
+                        if (msg.type === 'USER' && msg.content) {
+                            const matchWithSize = msg.content.match(/^\[Attached: (.*?) \| Size: (\d+)\]\n\n/);
+                            const matchOld = msg.content.match(/^\[Attached: (.*?)\]\n\n/);
 
-                setMessages(processedHistory);
+                            if (matchWithSize) {
+                                return {
+                                    ...msg,
+                                    content: msg.content.replace(matchWithSize[0], ''),
+                                    file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) }
+                                };
+                            } else if (matchOld) {
+                                return {
+                                    ...msg,
+                                    content: msg.content.replace(matchOld[0], ''),
+                                    file: { name: matchOld[1], size: null }
+                                };
+                            }
+                        }
+                        return msg;
+                    });
+
+                    setMessages(processedHistory);
+                    hasInitialized.current = true; 
+                }
             })
             .catch(err => console.error("Failed to load history:", err));
     }, [name, role, rollNo]);
@@ -131,35 +137,77 @@ const ChatStreaming = () => {
                 if (!uploadResponse.ok) throw new Error("Document ingestion failed");
             }
 
-            await fetchEventSource(`/api/chat/${rollNo}/stream-chat`, {
+            const response = await fetch(`/api/chat/${rollNo}/stream-chat`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${getToken()}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ query: userPrompt }),
-
-                onmessage(event) {
-                    const formattedChunk = event.data.replace(/\\n/g, '\n');
-                    setMessages(prev => {
-                        const newArray = [...prev];
-                        const lastIndex = newArray.length - 1;
-                        newArray[lastIndex] = {
-                            ...newArray[lastIndex],
-                            content: newArray[lastIndex].content + formattedChunk
-                        };
-                        return newArray;
-                    });
-                },
-                onerror(err) {
-                    console.error("Stream error:", err);
-                    setIsStreaming(false);
-                    throw err; 
-                },
-                onclose() {
-                    setIsStreaming(false);
-                }
+                body: JSON.stringify({ query: userPrompt })
             });
+
+            if (!response.ok) {
+                throw new Error(`Server responded with status ${response.status}`);
+            }
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            let buffer = "";
+            let isStreamFinished = false; // NEW: Explicit break flag
+
+            while (true) {
+                const { value, done: streamDone } = await reader.read();
+                
+                if (streamDone || isStreamFinished) {
+                    break; 
+                }
+                
+                if (value) {
+                    buffer += decoder.decode(value, { stream: true });
+                    const events = buffer.split('\n\n');
+                    buffer = events.pop();
+
+                    for (let event of events) {
+                        const lines = event.split('\n');
+                        for (let line of lines) {
+                            if (line.startsWith('data:')) {
+                                const dataStr = line.replace(/^data:\s*/, '').trim();
+                                
+                                // THE FIX: If the server sends the DONE flag, mark it and break out
+                                if (dataStr === '[DONE]') {
+                                    isStreamFinished = true;
+                                    break; 
+                                }
+                                
+                                if (dataStr === '') continue;
+
+                                let formattedChunk = "";
+                                
+                                try {
+                                    const parsed = JSON.parse(dataStr);
+                                    if (parsed && typeof parsed.text === 'string') {
+                                        formattedChunk = parsed.text;
+                                    }
+                                } catch (e) {
+                                    formattedChunk = dataStr.replace(/\\n/g, '\n');
+                                }
+
+                                if (formattedChunk) {
+                                    setMessages(prev => {
+                                        const newArray = [...prev];
+                                        const lastIndex = newArray.length - 1;
+                                        newArray[lastIndex] = {
+                                            ...newArray[lastIndex],
+                                            content: newArray[lastIndex].content + formattedChunk
+                                        };
+                                        return newArray;
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
         } catch (error) {
             console.error("Error in upload/stream pipeline:", error);
@@ -168,10 +216,12 @@ const ChatStreaming = () => {
                 const lastIndex = newArray.length - 1;
                 newArray[lastIndex] = {
                     ...newArray[lastIndex],
-                    content: `❌ **Error:** ${error.message || "Something went wrong. Please try again."}`
+                    type: 'ERROR',
+                    content: `**Connection Error:** ${error.message || "Something went wrong. Please try again."}`
                 };
                 return newArray;
             });
+        } finally {
             setIsStreaming(false);
         }
     }; 
@@ -227,7 +277,6 @@ const ChatStreaming = () => {
                         disabled={isStreaming}
                         title="Attach File"
                     >
-                        {/* CLEAN PAPERCLIP ICON */}
                         <Icon name="paperclip" size={20} />
                     </button>
                     <textarea
@@ -255,7 +304,6 @@ const ChatStreaming = () => {
                         disabled={isStreaming}
                     >
                         {isStreaming ? "..." : (
-                            /* CLEAN SEND ICON */
                             <Icon name="send" size={18} />
                         )}
                     </button>

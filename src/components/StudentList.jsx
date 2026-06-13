@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { smartCacheSet, smartCacheGet } from './cacheManager';
+import { Icon } from '../assets/utils'; 
 import './StudentList.css';
+
+const PROTECTED_KEYS = [
+    'authToken', 
+    'studentSession'
+];
 
 const COACHING_CITIES = [
     'Kota', 'Hyderabad', 'Delhi', 'Pune', 'Bangalore', 
@@ -8,36 +15,74 @@ const COACHING_CITIES = [
 ];
 
 const StudentList = () => {
-    // --- Pagination & Data State ---
+
     const [pageNumber, setPageNumber] = useState(() => {
-        const savedPage = sessionStorage.getItem('dashboard_pageNumber');
-        const parsed = parseInt(savedPage, 10);
-        return isNaN(parsed) ? 0 : parsed;
+        const savedPage = smartCacheGet('dashboard_pageNumber');
+        return typeof savedPage === 'number' ? savedPage : 0;
     }); 
     const [pageSize] = useState(12);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // --- Filter State ---
-    const [filterType, setFilterType] = useState('All');
-    const [filterValue, setFilterValue] = useState('');
+    const [filterType, setFilterType] = useState(() => {
+        const savedType = smartCacheGet('dashboard_filterType');
+        return savedType !== null ? savedType : 'All';
+    });
+    const [filterValue, setFilterValue] = useState(() => {
+        const savedVal = smartCacheGet('dashboard_filterValue');
+        return savedVal !== null ? savedVal : '';
+    });
+
+    useEffect(() => {
+        smartCacheSet('dashboard_filterType', filterType);
+        smartCacheSet('dashboard_filterValue', filterValue);
+    }, [filterType, filterValue]);
     
-    // --- Edit & Add State ---
     const [isAdding, setIsAdding] = useState(false);
     const [addFormData, setAddFormData] = useState({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT', smsOtpByPass: false });
     const [editingId, setEditingId] = useState(null);
     const [editFormData, setEditFormData] = useState({});
 
     const navigate = useNavigate();
+    
     const getToken = () => sessionStorage.getItem('authToken');
+    
+    const flushStudentCache = () => {
+        console.log("Database modified. Flushing outdated student list cache...");
+        
+        const backup = {};
+        PROTECTED_KEYS.forEach(protectedKey => {
+            const value = sessionStorage.getItem(protectedKey);
+            if (value !== null) {
+                backup[protectedKey] = value;
+            }
+        });
 
-    // --- Core Fetch Logic ---
+        sessionStorage.clear(); 
+        
+        Object.keys(backup).forEach(protectedKey => {
+            sessionStorage.setItem(protectedKey, backup[protectedKey]);
+        });
+
+        smartCacheSet('dashboard_filterType', filterType);
+        smartCacheSet('dashboard_filterValue', filterValue);
+    };
+
     const fetchStudents = useCallback((resetPage = false) => {
         setLoading(true);
         const currentPage = resetPage ? 0 : pageNumber;
         if (resetPage) setPageNumber(0);
 
-        sessionStorage.setItem('dashboard_pageNumber', currentPage.toString());
+        smartCacheSet('dashboard_pageNumber', currentPage);
+
+        const cacheKey = `student_data_page_${currentPage}_${filterType}_${filterValue}`;
+        const cachedData = smartCacheGet(cacheKey);
+        
+        if (cachedData) {
+            setStudents(cachedData);
+            setLoading(false);
+            return; 
+        }
 
         let url = `/api/students?pageNumber=${currentPage}&pageSize=${pageSize}`;
         
@@ -60,6 +105,7 @@ const StudentList = () => {
         .then(data => {
             setStudents(data);
             setLoading(false);
+            smartCacheSet(cacheKey, data);
         })
         .catch(err => {
             console.error(err);
@@ -71,7 +117,6 @@ const StudentList = () => {
         fetchStudents();
     }, [pageNumber]);
 
-    // --- Event Handlers ---
     const handleFilterApply = () => {
         fetchStudents(true); 
     };
@@ -97,7 +142,8 @@ const StudentList = () => {
         }).then(res => {
             if(res.ok) {
                 setEditingId(null);
-                fetchStudents(); 
+                flushStudentCache();
+                fetchStudents();    
             }
         });
     };
@@ -119,6 +165,7 @@ const StudentList = () => {
             if(res.ok) {
                 setIsAdding(false);
                 setAddFormData({ name: '', rollNo: '', classNum: '', city: '', phone: '', role: 'STUDENT', smsOtpByPass: false });
+                flushStudentCache(); 
                 fetchStudents(true); 
             }
         });
@@ -128,9 +175,9 @@ const StudentList = () => {
         <div className="grid-dashboard-container">
             {/* Header Area */}
             <div className="grid-header">
-                <h2>Student Directory</h2>
+                <h2>Directory</h2>
                 <button className="btn-success" onClick={() => setIsAdding(!isAdding)}>
-                    {isAdding ? 'Cancel Add' : '+ Add New Student'}
+                    {isAdding ? 'Cancel Add' : '+ Add New User'}
                 </button>
             </div>
 
@@ -194,17 +241,19 @@ const StudentList = () => {
                     </div>
                 )}
 
+                {/* --- REPLACED RAW SVG WITH ICON COMPONENT --- */}
                 <button className="btn-filter" onClick={handleFilterApply} title="Apply Filter">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
+                    <Icon name="filter" size={18} />
                     Filter
                 </button>
             </div>
 
             {/* Main Content Area */}
             {loading ? (
-                <div className="status-message">Loading directory... ⏳</div>
+                <div className="status-message loading-status">
+                    <div className="spinner"></div>
+                    <span>Loading directory...</span>
+                </div>
             ) : (
                 <div className="cards-grid">
                     
@@ -226,7 +275,6 @@ const StudentList = () => {
                                     <option value="ADMIN">Admin</option>
                                 </select>
                                 
-                                {/* --- NEW TOGGLE SWITCH (ADD MODE) --- */}
                                 <div className="toggle-switch-container">
                                     <span className="toggle-switch-label">Bypass SMS OTP</span>
                                     <label className="toggle-switch">
@@ -271,7 +319,6 @@ const StudentList = () => {
                                             <option value="ADMIN">Admin</option>
                                         </select>
                                         
-                                        {/* --- NEW TOGGLE SWITCH (EDIT MODE) --- */}
                                         <div className="toggle-switch-container">
                                             <span className="toggle-switch-label">Bypass SMS OTP</span>
                                             <label className="toggle-switch">
@@ -329,13 +376,14 @@ const StudentList = () => {
                 </div>
             )}
 
+            {/* --- REPLACED HTML ARROWS WITH ICON COMPONENT --- */}
             <div className="pagination-controls">
                 <button className="btn-secondary" disabled={pageNumber === 0} onClick={() => setPageNumber(prev => prev - 1)}>
-                    &#9664; Prev
+                    <Icon name="chevronLeft" size={14} /> Prev
                 </button>
                 <span className="page-indicator">Page {pageNumber + 1}</span>
                 <button className="btn-secondary" disabled={students && students.length < pageSize} onClick={() => setPageNumber(prev => prev + 1)}>
-                    Next &#9654;
+                    Next <Icon name="chevronRight" size={14} style={{ marginRight: 0, marginLeft: '6px' }} />
                 </button>
             </div>
         </div>

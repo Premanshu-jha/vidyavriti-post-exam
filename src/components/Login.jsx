@@ -149,7 +149,7 @@ const Login = () => {
                     sessionStorage.setItem('studentSession', JSON.stringify(studentData));
 
                     if (timerRef.current) clearInterval(timerRef.current);
-                    window.location.href = '/dashboard';
+                    window.location.href = '/';
                 } catch (decodeError) {
                     setError('Failed to process session data from token.');
                 }
