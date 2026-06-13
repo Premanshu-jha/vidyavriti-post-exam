@@ -3,7 +3,7 @@ import './Leaderboard.css';
 
 // 1. IMPORT YOUR SEPARATED COMPONENT HERE
 import LeaderboardAccordion from './LeaderboardAccordion';
-import { smartCacheGet, smartCacheSet } from '../utils/cacheManager';
+import { smartCacheGet, smartCacheSet } from './cacheManager';
 
 const EXAM_TYPES = ['JEE-MAINS', 'JEE-ADVANCED', 'EAPCET'];
 
@@ -62,8 +62,12 @@ const Leaderboard = () => {
                 ))}
             </div>
 
+            
             {loadingExams ? (
-                <div className="status-message">Loading exams... ⏳</div>
+                <div className="status-message loading-status">
+                    <div className="spinner"></div>
+                    <span>Loading exams...</span>
+                </div>
             ) : exams.length === 0 ? (
                 <div className="status-message">No exams found for {activeTab}.</div>
             ) : (

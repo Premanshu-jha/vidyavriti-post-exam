@@ -293,6 +293,23 @@
     border: 1px solid #334155;
 }
 
+.message-ERROR {
+    align-self: flex-start;
+}
+
+.message-ERROR .message-content {
+    background-color: #fef2f2; /* Very light, soft red background */
+    color: #991b1b;            /* Deep red text */
+    border: 1px solid #fecaca; /* Subtle red border */
+    border-radius: 8px;
+    padding: 12px 16px;
+    box-shadow: 0 2px 4px rgba(153, 27, 27, 0.05);
+}
+
+.message-ERROR .message-header {
+    color: #ef4444; /* Match the header timestamp color to the error theme */
+}
+
 @media (max-width: 768px) {
     .chat-container {
         position: fixed;

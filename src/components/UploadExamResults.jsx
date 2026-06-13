@@ -1,8 +1,13 @@
 import React, { useState, useRef } from 'react';
-import './Dashboard.css';
 import './UploadExamResults.css';
 
 import { getFileIcon, Icon } from '../assets/utils'; 
+
+// Define the keys we NEVER want to delete during a cache flush
+const PROTECTED_KEYS = [
+    'authToken', 
+    'studentSession'
+];
 
 const UploadExamResults = () => {
     const [examType, setExamType] = useState("");
@@ -10,7 +15,6 @@ const UploadExamResults = () => {
     const [examIdentifier, setExamIdentifier] = useState("");
     const [isUploadSuccess, setIsUploadSuccess] = useState(false);
     
-    // UPGRADED: Status is now an object so we can control the CSS beautifully
     const [status, setStatus] = useState({ text: "", type: "" });
     
     const [isUploading, setIsUploading] = useState(false);
@@ -127,15 +131,26 @@ const UploadExamResults = () => {
             setIsUploadSuccess(false);
             if (fileInputRef.current) fileInputRef.current.value = "";
 
-            const keysToRemove = [];
-            for (let i = 0; i < sessionStorage.length; i++) {
-                const key = sessionStorage.key(i);
-                if (key && (key.startsWith('student_data_page_') || key.startsWith('student_report_') || key.startsWith('lb_'))) {
-                    keysToRemove.push(key);
+            // --- THE SMART CACHE FLUSH ---
+            console.log("Database updated. Flushing outdated cache data...");
+            
+            // 1. BACKUP: Hold onto the auth tokens
+            const backup = {};
+            PROTECTED_KEYS.forEach(protectedKey => {
+                const value = sessionStorage.getItem(protectedKey);
+                if (value !== null) {
+                    backup[protectedKey] = value;
                 }
-            }
-            keysToRemove.forEach(key => sessionStorage.removeItem(key));
-            sessionStorage.removeItem("dashboard_pageNumber");
+            });
+
+            // 2. NUKE: Destroy all cached student data, leaderboards, and filters
+            sessionStorage.clear(); 
+            
+            // 3. RESTORE: Put the credentials safely back into storage
+            Object.keys(backup).forEach(protectedKey => {
+                sessionStorage.setItem(protectedKey, backup[protectedKey]);
+            });
+
         })
         .catch(err => {
             console.error(err);
@@ -202,7 +217,6 @@ const UploadExamResults = () => {
                         onClick={handleUpload} 
                         disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}
                     >
-                        {/* Emojis removed, clean text only */}
                         {isUploading ? "Uploading..." : "Upload to Server"}
                     </button>
                 </div>
@@ -217,15 +231,12 @@ const UploadExamResults = () => {
                         onClick={handleBulkUpdate} 
                         disabled={!isUploadSuccess || isUploading || isProcessing}
                     >
-                        {/* Emojis removed, clean text only */}
                         {isProcessing ? "Processing Data..." : "Push Data to Database"}
                     </button>
                 </div>
 
-                {/* DYNAMIC ALERT BOX */}
                 {status.text && (
                     <div className={`status-alert ${status.type}`}>
-                        {/* Success and Loading get matching icons. Error gets NO icon, just the smooth red background per your design! */}
                         {status.type === 'success' && <Icon name="check" size={20} color="currentColor" />}
                         {status.type === 'loading' && <Icon name="clock" size={20} color="currentColor" />}
                         

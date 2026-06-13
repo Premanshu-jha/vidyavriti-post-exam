@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './LeaderboardAccordion.css';
-import { smartCacheGet, smartCacheSet } from '../utils/cacheManager';
+import { smartCacheGet, smartCacheSet } from './cacheManager';
 
 // IMPORT THE UNIFIED ICON SYSTEM
 import { Icon } from '../assets/utils'; 
