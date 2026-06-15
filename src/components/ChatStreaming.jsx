@@ -80,7 +80,7 @@ const ChatStreaming = () => {
     };
 
     const askQuestion = async (overridePrompt = null) => {
-        const textToUse = overridePrompt || inputValue;
+        const textToUse = (typeof overridePrompt === 'string') ? overridePrompt : inputValue;
         if ((!textToUse.trim() && !pendingFile) || isStreaming) return;
 
         const userPrompt = pendingFile
