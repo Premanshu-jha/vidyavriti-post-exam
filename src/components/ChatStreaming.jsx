@@ -177,7 +177,9 @@ const ChatStreaming = () => {
                                     </div>
                                 </div>
                             )}
-                            {msg.type === 'USER' ? (msg.content || "Uploaded document.") : (
+                            {msg.type === 'USER' ? (
+                                msg.content || "Uploaded a document."
+                            ) : (
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                             )}
                         </div>
@@ -189,21 +191,55 @@ const ChatStreaming = () => {
             <div className="chat-input-container">
                 {pendingFile && (
                     <div className="pending-file-preview">
-                        <span>{pendingFile.name}</span>
-                        <button onClick={removePendingFile}>✕</button>
+                        <span className="file-icon-wrapper">{getFileIcon(pendingFile.name)}</span>
+                        <span className="pending-file-name">{pendingFile.name}</span>
+                        <button className="remove-file-btn" onClick={removePendingFile}>✕</button>
                     </div>
                 )}
                 <div className="chat-input-area">
-                    <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-                    <button onClick={() => fileInputRef.current?.click()} disabled={isStreaming}><Icon name="paperclip" size={20} /></button>
-                    <textarea 
-                        value={inputValue} 
-                        onChange={(e) => setInputValue(e.target.value)} 
-                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQuestion(); } }}
-                        placeholder="Ask anything!"
-                        disabled={isStreaming}
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        style={{ display: 'none' }}
+                        accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg,.docx,.txt"
                     />
-                    <button onClick={askQuestion} disabled={isStreaming}><Icon name="send" size={18} /></button>
+                    <button
+                        className="attach-button"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={isStreaming}
+                        title="Attach File"
+                    >
+                        <Icon name="paperclip" size={20} />
+                    </button>
+                    <textarea
+                        className="chat-input"
+                        value={inputValue}
+                        onChange={(e) => {
+                            setInputValue(e.target.value);
+                            e.target.style.height = 'auto';
+                            e.target.style.height = `${e.target.scrollHeight}px`;
+                        }}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                askQuestion();
+                                e.target.style.height = 'auto';
+                            }
+                        }}
+                        placeholder={pendingFile ? "Ask a question about this file..." : "Ask anything!"}
+                        disabled={isStreaming}
+                        rows="1"
+                    />
+                    <button
+                        className="chat-button"
+                        onClick={askQuestion}
+                        disabled={isStreaming}
+                    >
+                        {isStreaming ? "..." : (
+                            <Icon name="send" size={18} />
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
