@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import './StudentReport.css'; 
-
 import { Icon } from '../assets/utils'; 
 
 const StudentReport = () => {
@@ -9,10 +8,10 @@ const StudentReport = () => {
     const navigate = useNavigate();
     const [reports, setReports] = useState([]); 
     const [loading, setLoading] = useState(true);
-    
     const [openIndices, setOpenIndices] = useState([0]); 
     const [activeTab, setActiveTab] = useState(""); 
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
     const getToken = () => sessionStorage.getItem('authToken');
 
     useEffect(() => {
@@ -29,7 +28,7 @@ const StudentReport = () => {
         
         setLoading(true);
 
-        fetch(`/api/students/${id}/report`, {
+        fetch(`${API_BASE_URL}/api/students/${id}/report`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${getToken()}`,
@@ -50,7 +49,7 @@ const StudentReport = () => {
                 console.error("Failed to fetch report:", err);
                 setLoading(false);
             });
-    }, [id]);
+    }, [id, API_BASE_URL]);
 
     const initializeTabs = (data) => {
         if (data && data.length > 0) {
@@ -68,37 +67,18 @@ const StudentReport = () => {
     };
 
     const subjectConfig = {
-        physics: { 
-            symbol: <Icon name="physics" size={20} />, 
-            color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)",
-            baseColor: "#a855f7" 
-        }, 
-        maths: { 
-            symbol: <Icon name="maths" size={20} />, 
-            color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)",
-            baseColor: "#3b82f6" 
-        },   
-        chemistry: { 
-            symbol: <Icon name="chemistry" size={20} />, 
-            color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)",
-            baseColor: "#14b8a6" 
-        },
-        overall: { 
-            symbol: <Icon name="overall" size={20} />, 
-            color: "linear-gradient(180deg, #64748b 0%, #334155 100%)",
-            baseColor: "#64748b" 
-        }, 
-        fallback: { 
-            symbol: <Icon name="fallback" size={20} />, 
-            color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)",
-            baseColor: "#f59e0b" 
-        } 
+        physics: { symbol: <Icon name="physics" size={20} />, color: "linear-gradient(180deg, #a855f7 0%, #7e22ce 100%)", baseColor: "#a855f7" }, 
+        maths: { symbol: <Icon name="maths" size={20} />, color: "linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%)", baseColor: "#3b82f6" },   
+        chemistry: { symbol: <Icon name="chemistry" size={20} />, color: "linear-gradient(180deg, #14b8a6 0%, #0f766e 100%)", baseColor: "#14b8a6" },
+        overall: { symbol: <Icon name="overall" size={20} />, color: "linear-gradient(180deg, #64748b 0%, #334155 100%)", baseColor: "#64748b" }, 
+        fallback: { symbol: <Icon name="fallback" size={20} />, color: "linear-gradient(180deg, #f59e0b 0%, #b45309 100%)", baseColor: "#f59e0b" } 
     };
 
     const studentInfo = reports.length > 0 ? reports[0].student : null;
     const availableExamTypes = [...new Set(reports.map(r => r.exam.examType || 'Uncategorized'))];
     const filteredReports = reports.filter(r => (r.exam.examType || 'Uncategorized') === activeTab);
 
+    // Calculations
     const globalSubjectsSet = new Set();
     filteredReports.forEach(report => {
         Object.keys(report)
@@ -131,7 +111,6 @@ const StudentReport = () => {
                 <Icon name="chevronLeft" size={14} /> Back to Directory
             </button>
 
-            {/* --- RESTORED RAW CSS SPINNER --- */}
             {loading ? (
                 <div className="status-message loading-status">
                     <div className="spinner"></div>
@@ -160,10 +139,7 @@ const StudentReport = () => {
                             <button 
                                 key={type}
                                 className={`exam-tab ${activeTab === type ? 'active' : ''}`}
-                                onClick={() => {
-                                    setActiveTab(type);
-                                    setOpenIndices([0]); 
-                                }}
+                                onClick={() => { setActiveTab(type); setOpenIndices([0]); }}
                             >
                                 {type}
                             </button>
@@ -174,28 +150,22 @@ const StudentReport = () => {
                         <>
                             <div className="averages-dashboard">
                                 <div className="average-card overall-avg">
-                                    <div className="avg-icon">
-                                        {React.cloneElement(subjectConfig.overall.symbol, { color: subjectConfig.overall.baseColor })}
-                                    </div>
+                                    <div className="avg-icon">{React.cloneElement(subjectConfig.overall.symbol, { color: subjectConfig.overall.baseColor })}</div>
                                     <div className="avg-details">
                                         <h4>Overall Average</h4>
                                         <div className="avg-score">{avgOverallScored} <span className="max-score">/ {avgOverallMax}</span></div>
                                         <div className="avg-percent">{avgOverallPercent}% Accuracy</div>
                                     </div>
                                 </div>
-
                                 {activeSubjects.map(sub => {
                                     const subName = sub.charAt(0).toUpperCase() + sub.slice(1);
                                     const config = subjectConfig[sub] || subjectConfig.fallback;
                                     const avgScored = Math.round(subjectSums[sub].scored / numExams);
                                     const avgMax = Math.round(subjectSums[sub].max / numExams);
                                     const percent = subjectSums[sub].max > 0 ? Math.round((subjectSums[sub].scored / subjectSums[sub].max) * 100) : 0;
-
                                     return (
                                         <div key={sub} className="average-card">
-                                            <div className="avg-icon">
-                                                {React.cloneElement(config.symbol, { color: config.baseColor })}
-                                            </div>
+                                            <div className="avg-icon">{React.cloneElement(config.symbol, { color: config.baseColor })}</div>
                                             <div className="avg-details">
                                                 <h4>{subName} Avg</h4>
                                                 <div className="avg-score">{avgScored} <span className="max-score">/ {avgMax}</span></div>
@@ -212,19 +182,16 @@ const StudentReport = () => {
                                         const isOverall = subject === 'overall';
                                         const config = isOverall ? subjectConfig.overall : (subjectConfig[subject] || subjectConfig.fallback);
                                         const title = isOverall ? "Overall Trend" : `${subject.charAt(0).toUpperCase() + subject.slice(1)} Trend`;
-
                                         const ChartIcon = React.cloneElement(config.symbol, { color: config.baseColor });
 
                                         return (
                                             <div key={subject} className="exam-card trend-card">
                                                 <h3>{ChartIcon} {title}</h3>
-                                                
                                                 <div className="css-bar-chart">
                                                     {filteredReports.map((report, idx) => {
                                                         const scored = isOverall ? report.totalMarks : (report[`${subject}MarksScored`] || 0);
                                                         const max = isOverall ? report.exam.examTotalMarks : (report.exam[`${subject}TotalMarks`] || 1);
                                                         const percent = Math.max(0, (scored / max) * 100);
-                                                        
                                                         return (
                                                             <div key={idx} className="bar-wrapper" title={`${report.exam.examIdentifier} - ${scored}/${max}`}>
                                                                 <div className="bar-fill" style={{ height: `${percent}%`, background: config.color }}>
@@ -242,7 +209,6 @@ const StudentReport = () => {
                             )}
                             
                             <h2>{activeTab} Detailed History</h2>
-
                             {filteredReports.map((report, index) => {
                                 const examDate = report.examStartTime ? report.examStartTime.split(' ')[0] : 'N/A';
                                 const startTime = report.examStartTime ? report.examStartTime.split(' ')[1] : 'N/A';
@@ -253,21 +219,14 @@ const StudentReport = () => {
                                     .map(key => {
                                         const prefix = key.replace('AttemptedQuestions', ''); 
                                         const config = subjectConfig[prefix] || subjectConfig.fallback;
-                                        
-                                        return {
-                                            prefix: prefix,
-                                            name: prefix.charAt(0).toUpperCase() + prefix.slice(1), 
-                                            symbol: React.cloneElement(config.symbol, { color: config.baseColor, size: 14 })
-                                        };
+                                        return { prefix, name: prefix.charAt(0).toUpperCase() + prefix.slice(1), symbol: React.cloneElement(config.symbol, { color: config.baseColor, size: 14 }) };
                                     });
 
                                 return (
                                     <div key={index} className="accordion-item">
                                         <button className="accordion-header" onClick={() => toggleAccordion(index)}>
                                             <div className="accordion-title-area">
-                                                <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}>
-                                                    <Icon name="chevronRight" size={16} />
-                                                </span>
+                                                <span className={`accordion-icon ${openIndices.includes(index) ? 'open' : ''}`}><Icon name="chevronRight" size={16} /></span>
                                                 <h3>{report.exam.examIdentifier}</h3>
                                                 <div className="accordion-summary-tags">
                                                     <span><Icon name="calendar" size={14} color="#64748b"/> {examDate}</span>
@@ -276,7 +235,6 @@ const StudentReport = () => {
                                                 </div>
                                             </div>
                                         </button>
-
                                         <div className={`accordion-body-wrapper ${openIndices.includes(index) ? 'open' : ''}`}>
                                             <div className="accordion-body-inner">
                                                 <div className="accordion-body">
@@ -287,23 +245,10 @@ const StudentReport = () => {
                                                         <span><strong><Icon name="door" size={14} color="#f59e0b"/> Time Outside:</strong> {report.timeOutside}</span>
                                                         <span><strong><Icon name="users" size={14} color="#8b5cf6"/> Participants:</strong> {report.exam.totalStudentsAttempted}</span>
                                                     </div>
-
                                                     <div className="table-responsive">
                                                         <table className="data-table table-nowrap">
                                                             <thead>
-                                                                <tr>
-                                                                    <th>Subject</th>
-                                                                    <th>Attempted</th>
-                                                                    <th>Correct</th>
-                                                                    <th>Wrong</th>
-                                                                    <th>+ Marks</th>
-                                                                    <th>- Marks</th>
-                                                                    <th>Net Scored</th>
-                                                                    <th>Max Marks</th>
-                                                                    <th>Time Spent</th>
-                                                                    <th>Avg Time/Q</th>
-                                                                    <th>Rank</th>
-                                                                </tr>
+                                                                <tr><th>Subject</th><th>Attempted</th><th>Correct</th><th>Wrong</th><th>+ Marks</th><th>- Marks</th><th>Net Scored</th><th>Max Marks</th><th>Time Spent</th><th>Avg Time/Q</th><th>Rank</th></tr>
                                                             </thead>
                                                             <tbody>
                                                                 {dynamicSubjects.map(({ name, prefix, symbol }) => (
@@ -314,16 +259,13 @@ const StudentReport = () => {
                                                                         <td className="text-danger">{report[`${prefix}WrongAnswers`]}</td>
                                                                         <td className="text-success">+{report[`${prefix}PositiveMarks`]}</td>
                                                                         <td className="text-danger">{report[`${prefix}NegativeMarks`]}</td>
-                                                                        <td className={report[`${prefix}MarksScored`] < 0 ? 'text-danger' : ''}>
-                                                                            {report[`${prefix}MarksScored`]}
-                                                                        </td>
+                                                                        <td className={report[`${prefix}MarksScored`] < 0 ? 'text-danger' : ''}>{report[`${prefix}MarksScored`]}</td>
                                                                         <td>{report.exam[`${prefix}TotalMarks`]}</td>
                                                                         <td>{report[`${prefix}TotalTimeSpent`]}</td>
                                                                         <td>{report[`${prefix}AvgTimeEachQuestion`]}</td>
                                                                         <td>#{report[`${prefix}Rank`]}</td>
                                                                     </tr>
                                                                 ))}
-
                                                                 <tr className="summary-row">
                                                                     <td><Icon name="overall" size={14} color={subjectConfig.overall.baseColor}/> OVERALL</td>
                                                                     <td>{report.totalAttemptedQuestions}</td>
@@ -331,9 +273,7 @@ const StudentReport = () => {
                                                                     <td className="text-danger">{report.totalWrongAnswers}</td>
                                                                     <td className="text-success">+{report.totalPositiveMarks}</td>
                                                                     <td className="text-danger">{report.totalNegativeMarks}</td>
-                                                                    <td className={`summary-score ${report.totalMarks < 0 ? 'text-danger' : ''}`}>
-                                                                        {report.totalMarks}
-                                                                    </td>
+                                                                    <td className={`summary-score ${report.totalMarks < 0 ? 'text-danger' : ''}`}>{report.totalMarks}</td>
                                                                     <td>{report.exam.examTotalMarks}</td>
                                                                     <td>{report.totalTimeSpent}</td>
                                                                     <td>{report.avgTimeEachQuestion}</td>
