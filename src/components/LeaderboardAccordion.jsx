@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './LeaderboardAccordion.css';
 import { smartCacheGet, smartCacheSet } from './cacheManager';
-
-// IMPORT THE UNIFIED ICON SYSTEM
 import { Icon } from '../assets/utils'; 
 
 const COACHING_CITIES = [
@@ -10,7 +8,7 @@ const COACHING_CITIES = [
     'Chennai', 'Mumbai', 'Jaipur', 'Patna', 'Chandigarh'
 ];
 
-const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
+const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) => {
     const [leaderboardData, setLeaderboardData] = useState([]);
     const [loading, setLoading] = useState(false);
     
@@ -34,7 +32,8 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
             return; 
         }
 
-        let url = `/api/exams/${exam.id}?pageNumber=${currentPage}&pageSize=${pageSize}`;
+        // Updated to use apiBaseUrl prop
+        let url = `${apiBaseUrl}/api/exams/${exam.id}?pageNumber=${currentPage}&pageSize=${pageSize}`;
         if (isFiltered) {
             url += `&${filterType}=${encodeURIComponent(filterValue)}`;
         }
@@ -50,19 +49,18 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
             console.error("Failed to load leaderboard:", err);
             setLoading(false);
         });
-    }, [exam.id, pageNumber, pageSize, filterType, filterValue, getToken]);
+    }, [exam.id, pageNumber, pageSize, filterType, filterValue, getToken, apiBaseUrl]);
 
     useEffect(() => {
         if (isOpen) {
             fetchLeaderboard();
         }
-    }, [isOpen, pageNumber]); 
+    }, [isOpen, pageNumber, fetchLeaderboard]); 
 
     const handleFilterApply = () => {
         fetchLeaderboard(true);
     };
 
-    // REPLACED EMOJIS WITH CLEAN AWARD ICONS
     const getRankBadge = (rank) => {
         if (rank === 1) return <span className="lb-rank-badge gold"><Icon name="award" size={14} color="currentColor" /> 1st</span>;
         if (rank === 2) return <span className="lb-rank-badge silver"><Icon name="award" size={14} color="currentColor" /> 2nd</span>;
@@ -74,7 +72,6 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
         <div className={`lb-accordion-item ${isOpen ? 'open' : ''}`}>
             <button className="lb-accordion-header" onClick={onToggle}>
                 <div className="lb-header-info">
-                    {/* REPLACED HTML ARROW WITH CHEVRON ICON */}
                     <span className={`lb-icon ${isOpen ? 'open' : ''}`}>
                         <Icon name="chevronRight" size={16} />
                     </span>
@@ -87,7 +84,6 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
 
             <div className={`lb-accordion-body ${isOpen ? 'open' : ''}`}>
                 <div className="lb-accordion-content">
-                    
                     <div className="lb-filter-bar">
                         <div className="lb-filter-group">
                             <label style={{ marginRight: '8px', fontWeight: '600', color: '#1e293b' }}>Filter By:</label>
@@ -101,26 +97,13 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
 
                         {filterType === 'name' && (
                             <div className="lb-filter-group">
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter Student Name..." 
-                                    value={filterValue} 
-                                    onChange={(e) => setFilterValue(e.target.value)} 
-                                    onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()}
-                                />
+                                <input type="text" placeholder="Enter Student Name..." value={filterValue} onChange={(e) => setFilterValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()} />
                             </div>
                         )}
 
                         {filterType === 'city' && (
                             <div className="lb-filter-group">
-                                <input 
-                                    list={`city-options-${exam.id}`} 
-                                    type="text"
-                                    placeholder="Search city..." 
-                                    value={filterValue} 
-                                    onChange={(e) => setFilterValue(e.target.value)} 
-                                    onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()}
-                                />
+                                <input list={`city-options-${exam.id}`} type="text" placeholder="Search city..." value={filterValue} onChange={(e) => setFilterValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()} />
                                 <datalist id={`city-options-${exam.id}`}>
                                     {COACHING_CITIES.map(c => <option key={c} value={c} />)}
                                 </datalist>
@@ -129,24 +112,15 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
 
                         {filterType === 'rollNo' && (
                             <div className="lb-filter-group">
-                                <input 
-                                    type="text" 
-                                    placeholder="Enter Roll Number..." 
-                                    value={filterValue} 
-                                    onChange={(e) => setFilterValue(e.target.value)} 
-                                    onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()}
-                                />
+                                <input type="text" placeholder="Enter Roll Number..." value={filterValue} onChange={(e) => setFilterValue(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleFilterApply()} />
                             </div>
                         )}
 
                         <button className="btn-filter" onClick={handleFilterApply} title="Apply Filter">
-                            {/* REPLACED RAW SVG WITH FILTER ICON */}
-                            <Icon name="filter" size={16} color="currentColor" />
-                            Filter
+                            <Icon name="filter" size={16} color="currentColor" /> Filter
                         </button>
                     </div>
 
-                    {/* REPLACED EMOJI WITH CLOCK ICON */}
                     {loading ? (
                         <div className="lb-status">
                             <Icon name="clock" size={18} /> Fetching ranks...
@@ -172,7 +146,6 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
                                             const accuracy = record.totalAttemptedQuestions > 0 
                                                 ? Math.round((record.totalCorrectAnswers / record.totalAttemptedQuestions) * 100) 
                                                 : 0;
-
                                             return (
                                                 <tr key={record.id} className={record.rank <= 3 ? 'top-tier-row' : ''}>
                                                     <td className="rank-col">{getRankBadge(record.rank)}</td>
@@ -196,7 +169,6 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken }) => {
                             </div>
 
                             <div className="pagination-controls lb-pagination">
-                                {/* REPLACED HTML ARROWS WITH CHEVRON ICONS */}
                                 <button className="btn-secondary" disabled={pageNumber === 0} onClick={() => setPageNumber(p => p - 1)}>
                                     <Icon name="chevronLeft" size={14} color="currentColor" /> Prev
                                 </button>

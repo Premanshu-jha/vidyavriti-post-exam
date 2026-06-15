@@ -6,17 +6,15 @@ import logo from '../assets/vidyavriti-favicon.png';
 const Login = () => {
     const [step, setStep] = useState(1);
     const [rollNo, setRollNo] = useState('');
-    // State is now an array of 4 empty strings
     const [otp, setOtp] = useState(['', '', '', '']); 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    
     const [timeLeft, setTimeLeft] = useState(0);
-    const timerRef = useRef(null);
     
-    // Create an array of references for the 4 input boxes
+    const timerRef = useRef(null);
     const inputRefs = useRef([]);
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
     useEffect(() => {
         return () => {
@@ -47,24 +45,18 @@ const Login = () => {
         return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
-    // --- NEW: OTP Input Handlers ---
     const handleChange = (index, e) => {
         const value = e.target.value;
-        if (isNaN(value)) return; // Only allow numbers
-
+        if (isNaN(value)) return;
         const newOtp = [...otp];
-        // Take only the last character (in case they type fast)
         newOtp[index] = value.substring(value.length - 1);
         setOtp(newOtp);
-
-        // Move to next input box automatically
         if (value && index < 3 && inputRefs.current[index + 1]) {
             inputRefs.current[index + 1].focus();
         }
     };
 
     const handleKeyDown = (index, e) => {
-        // Move to previous input box on backspace if current box is empty
         if (e.key === 'Backspace' && !otp[index] && index > 0 && inputRefs.current[index - 1]) {
             inputRefs.current[index - 1].focus();
         }
@@ -73,20 +65,14 @@ const Login = () => {
     const handlePaste = (e) => {
         e.preventDefault();
         const pasteData = e.clipboardData.getData('text').slice(0, 4).split('');
-        if (pasteData.some(char => isNaN(char))) return; // Ensure paste is numbers only
-
+        if (pasteData.some(char => isNaN(char))) return;
         const newOtp = [...otp];
-        pasteData.forEach((char, idx) => {
-            newOtp[idx] = char;
-        });
+        pasteData.forEach((char, idx) => { newOtp[idx] = char; });
         setOtp(newOtp);
-
-        // Focus the last filled input
         const focusIndex = pasteData.length < 4 ? pasteData.length : 3;
         inputRefs.current[focusIndex].focus();
     };
 
-    // Step 1: Request OTP
     const handleGenerateOtp = async (e) => {
         e.preventDefault();
         setError('');
@@ -94,7 +80,7 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/generate-otp', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/generate-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rollNo }),
@@ -115,17 +101,14 @@ const Login = () => {
         }
     };
 
-    // Step 2: Verify OTP
     const handleVerifyOtp = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
-        // Join the array into a single string for the backend
         const otpString = otp.join('');
 
         try {
-            const response = await fetch('/api/auth/verify-otp', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ rollNo, otp: otpString }),

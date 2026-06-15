@@ -12,11 +12,12 @@ const ChatStreaming = () => {
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
-    
     const hasInitialized = useRef(false);
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
     const sessionData = JSON.parse(sessionStorage.getItem("studentSession") || "{}");
-    const { name, role, rollNo } = sessionData;
+    const { name, rollNo } = sessionData;
 
     const getToken = () => sessionStorage.getItem("authToken");
 
@@ -29,58 +30,36 @@ const ChatStreaming = () => {
     }, [messages]);
 
     useEffect(() => {
-        fetch(`/api/chat/${rollNo}/chat-history`, {
+        if (!rollNo) return;
+
+        fetch(`${API_BASE_URL}/api/chat/${rollNo}/chat-history`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         })
             .then(res => res.json())
             .then(data => {
-                
-                if (data.length === 0) {
-                    if (!hasInitialized.current) {
-                        hasInitialized.current = true;
-                        const introMessage = `Hi! my name is ${name} and my roll number is ${rollNo}!`;
-                        askQuestion(introMessage);
-                    }
+                if (data.length === 0 && !hasInitialized.current) {
+                    hasInitialized.current = true;
+                    askQuestion(`Hi! my name is ${name} and my roll number is ${rollNo}!`);
                 } else {
                     const processedHistory = data.map(msg => {
                         if (msg.type === 'USER' && msg.content) {
                             const matchWithSize = msg.content.match(/^\[Attached: (.*?) \| Size: (\d+)\]\n\n/);
-                            const matchOld = msg.content.match(/^\[Attached: (.*?)\]\n\n/);
-
                             if (matchWithSize) {
                                 return {
                                     ...msg,
                                     content: msg.content.replace(matchWithSize[0], ''),
                                     file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) }
                                 };
-                            } else if (matchOld) {
-                                return {
-                                    ...msg,
-                                    content: msg.content.replace(matchOld[0], ''),
-                                    file: { name: matchOld[1], size: null }
-                                };
                             }
                         }
                         return msg;
                     });
-
                     setMessages(processedHistory);
-                    hasInitialized.current = true; 
+                    hasInitialized.current = true;
                 }
             })
             .catch(err => console.error("Failed to load history:", err));
-    }, [name, role, rollNo]);
-
-    const formatTime = (timestamp) => {
-        if (!timestamp) return "Unknown Time";
-        try {
-            const date = new Date(timestamp);
-            if (isNaN(date)) return timestamp;
-            return date.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-        } catch (e) {
-            return timestamp;
-        }
-    };
+    }, [API_BASE_URL, name, rollNo]);
 
     const handleFileChange = (e) => {
         if (e.target.files && e.target.files[0]) {
@@ -93,10 +72,15 @@ const ChatStreaming = () => {
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
-    const askQuestion = async (overridePrompt = null) => {
-        const isEvent = overridePrompt && typeof overridePrompt === 'object' && overridePrompt.type;
-        const textToUse = (!isEvent && overridePrompt) ? overridePrompt : inputValue;
+    const formatTime = (timestamp) => {
+        if (!timestamp) return "";
+        try {
+            return new Date(timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } catch (e) { return timestamp; }
+    };
 
+    const askQuestion = async (overridePrompt = null) => {
+        const textToUse = overridePrompt || inputValue;
         if ((!textToUse.trim() && !pendingFile) || isStreaming) return;
 
         const userPrompt = pendingFile
@@ -105,7 +89,6 @@ const ChatStreaming = () => {
 
         const fileToUpload = pendingFile;
         const currentTime = new Date().toISOString();
-        const cleanInputForUI = textToUse;
 
         setInputValue("");
         setPendingFile(null);
@@ -114,12 +97,7 @@ const ChatStreaming = () => {
 
         setMessages(prev => [
             ...prev,
-            {
-                type: 'USER',
-                content: cleanInputForUI,
-                timestamp: currentTime,
-                file: fileToUpload ? { name: fileToUpload.name, size: fileToUpload.size } : null
-            },
+            { type: 'USER', content: textToUse, timestamp: currentTime, file: fileToUpload ? { name: fileToUpload.name, size: fileToUpload.size } : null },
             { type: 'ASSISTANT', content: '', timestamp: currentTime }
         ]);
 
@@ -127,97 +105,54 @@ const ChatStreaming = () => {
             if (fileToUpload) {
                 const formData = new FormData();
                 formData.append("file", fileToUpload);
-
-                const uploadResponse = await fetch(`/api/chat/upload?rollNumber=${rollNo}`, {
+                await fetch(`${API_BASE_URL}/api/chat/upload?rollNumber=${rollNo}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${getToken()}` },
                     body: formData
                 });
-
-                if (!uploadResponse.ok) throw new Error("Document ingestion failed");
             }
 
-            const response = await fetch(`/api/chat/${rollNo}/stream-chat`, {
+            const response = await fetch(`${API_BASE_URL}/api/chat/${rollNo}/stream-chat`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${getToken()}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ query: userPrompt })
             });
 
-            if (!response.ok) {
-                throw new Error(`Server responded with status ${response.status}`);
-            }
+            if (!response.ok) throw new Error("Streaming failed");
 
             const reader = response.body.getReader();
-            const decoder = new TextDecoder("utf-8");
-            let buffer = "";
-            let isStreamFinished = false; // NEW: Explicit break flag
-
+            const decoder = new TextDecoder();
+            
             while (true) {
-                const { value, done: streamDone } = await reader.read();
+                const { value, done } = await reader.read();
+                if (done) break;
                 
-                if (streamDone || isStreamFinished) {
-                    break; 
-                }
-                
-                if (value) {
-                    buffer += decoder.decode(value, { stream: true });
-                    const events = buffer.split('\n\n');
-                    buffer = events.pop();
-
-                    for (let event of events) {
-                        const lines = event.split('\n');
-                        for (let line of lines) {
-                            if (line.startsWith('data:')) {
-                                const dataStr = line.replace(/^data:\s*/, '').trim();
-                                
-                                // THE FIX: If the server sends the DONE flag, mark it and break out
-                                if (dataStr === '[DONE]') {
-                                    isStreamFinished = true;
-                                    break; 
-                                }
-                                
-                                if (dataStr === '') continue;
-
-                                let formattedChunk = "";
-                                
-                                try {
-                                    const parsed = JSON.parse(dataStr);
-                                    if (parsed && typeof parsed.text === 'string') {
-                                        formattedChunk = parsed.text;
-                                    }
-                                } catch (e) {
-                                    formattedChunk = dataStr.replace(/\\n/g, '\n');
-                                }
-
-                                if (formattedChunk) {
-                                    setMessages(prev => {
-                                        const newArray = [...prev];
-                                        const lastIndex = newArray.length - 1;
-                                        newArray[lastIndex] = {
-                                            ...newArray[lastIndex],
-                                            content: newArray[lastIndex].content + formattedChunk
-                                        };
-                                        return newArray;
-                                    });
-                                }
+                const chunk = decoder.decode(value, { stream: true });
+                chunk.split('\n\n').forEach(event => {
+                    if (event.startsWith('data:')) {
+                        const dataStr = event.replace('data:', '').trim();
+                        if (dataStr === '[DONE]') return;
+                        try {
+                            const parsed = JSON.parse(dataStr);
+                            if (parsed.text) {
+                                setMessages(prev => {
+                                    const newArray = [...prev];
+                                    newArray[newArray.length - 1].content += parsed.text;
+                                    return newArray;
+                                });
                             }
-                        }
+                        } catch (e) {}
                     }
-                }
+                });
             }
-
         } catch (error) {
-            console.error("Error in upload/stream pipeline:", error);
+            console.error("Pipeline Error:", error);
             setMessages(prev => {
                 const newArray = [...prev];
-                const lastIndex = newArray.length - 1;
-                newArray[lastIndex] = {
-                    ...newArray[lastIndex],
-                    type: 'ERROR',
-                    content: `**Connection Error:** ${error.message || "Something went wrong. Please try again."}`
+                newArray[newArray.length - 1] = { 
+                    ...newArray[newArray.length - 1], 
+                    type: 'ERROR', 
+                    content: "Connection Error: Please try again." 
                 };
                 return newArray;
             });
@@ -231,9 +166,7 @@ const ChatStreaming = () => {
             <div className="chat-history">
                 {messages.map((msg, index) => (
                     <div key={index} className={`message message-${msg.type}`}>
-                        <div className="message-header">
-                            {formatTime(msg.timestamp)}
-                        </div>
+                        <div className="message-header">{formatTime(msg.timestamp)}</div>
                         <div className="message-content">
                             {msg.file && (
                                 <div className="message-file-attachment">
@@ -244,9 +177,7 @@ const ChatStreaming = () => {
                                     </div>
                                 </div>
                             )}
-                            {msg.type === 'USER' ? (
-                                msg.content || "Uploaded a document."
-                            ) : (
+                            {msg.type === 'USER' ? (msg.content || "Uploaded document.") : (
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                             )}
                         </div>
@@ -258,55 +189,21 @@ const ChatStreaming = () => {
             <div className="chat-input-container">
                 {pendingFile && (
                     <div className="pending-file-preview">
-                        <span className="file-icon-wrapper">{getFileIcon(pendingFile.name)}</span>
-                        <span className="pending-file-name">{pendingFile.name}</span>
-                        <button className="remove-file-btn" onClick={removePendingFile}>✕</button>
+                        <span>{pendingFile.name}</span>
+                        <button onClick={removePendingFile}>✕</button>
                     </div>
                 )}
                 <div className="chat-input-area">
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        style={{ display: 'none' }}
-                        accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg,.docx,.txt"
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+                    <button onClick={() => fileInputRef.current?.click()} disabled={isStreaming}><Icon name="paperclip" size={20} /></button>
+                    <textarea 
+                        value={inputValue} 
+                        onChange={(e) => setInputValue(e.target.value)} 
+                        onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); askQuestion(); } }}
+                        placeholder="Ask anything!"
+                        disabled={isStreaming}
                     />
-                    <button
-                        className="attach-button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isStreaming}
-                        title="Attach File"
-                    >
-                        <Icon name="paperclip" size={20} />
-                    </button>
-                    <textarea
-                        className="chat-input"
-                        value={inputValue}
-                        onChange={(e) => {
-                            setInputValue(e.target.value);
-                            e.target.style.height = 'auto';
-                            e.target.style.height = `${e.target.scrollHeight}px`;
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                askQuestion();
-                                e.target.style.height = 'auto';
-                            }
-                        }}
-                        placeholder={pendingFile ? "Ask a question about this file..." : "Ask anything!"}
-                        disabled={isStreaming}
-                        rows="1"
-                    />
-                    <button
-                        className="chat-button"
-                        onClick={askQuestion}
-                        disabled={isStreaming}
-                    >
-                        {isStreaming ? "..." : (
-                            <Icon name="send" size={18} />
-                        )}
-                    </button>
+                    <button onClick={askQuestion} disabled={isStreaming}><Icon name="send" size={18} /></button>
                 </div>
             </div>
         </div>

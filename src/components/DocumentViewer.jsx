@@ -6,6 +6,7 @@ const DocumentViewer = () => {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
     const getToken = () => sessionStorage.getItem('authToken');
 
     useEffect(() => {
@@ -14,7 +15,7 @@ const DocumentViewer = () => {
 
     const fetchFiles = () => {
         setLoading(true);
-        fetch('/api/file', {
+        fetch(`${API_BASE_URL}/api/file`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${getToken()}`, 
@@ -37,7 +38,7 @@ const DocumentViewer = () => {
 
     const handleDownload = async (id) => {
         try {
-            const ticketRes = await fetch(`/api/file/generate-ticket/${id}`, {
+            const ticketRes = await fetch(`${API_BASE_URL}/api/file/generate-ticket/${id}`, {
                 method: 'GET',
                 headers: { 'Authorization': `Bearer ${getToken()}` }
             });
@@ -45,7 +46,7 @@ const DocumentViewer = () => {
             if (!ticketRes.ok) throw new Error("Unauthorized to download this file.");
             
             const ticket = await ticketRes.text(); 
-            window.location.href = `/api/file/download/${id}?ticket=${ticket}`;
+            window.location.href = `${API_BASE_URL}/api/file/download/${id}?ticket=${ticket}`;
             
         } catch (err) {
             console.error("Error initiating secure download:", err);
@@ -58,7 +59,7 @@ const DocumentViewer = () => {
             return;
         }
 
-        fetch(`/api/file/delete/${id}`, { 
+        fetch(`${API_BASE_URL}/api/file/delete/${id}`, { 
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${getToken()}` }
         })
@@ -77,13 +78,11 @@ const DocumentViewer = () => {
             <div className="doc-header">
                 <h2>Document Repository</h2>
                 <button className="btn-secondary header-refresh-btn" onClick={fetchFiles}>
-                    {/* 2. REPLACED SVG WITH ICON */}
                     <Icon name="refresh" size={16} />
                     Refresh List
                 </button>
             </div>
 
-            {/* --- RESTORED RAW CSS SPINNER --- */}
             {loading ? (
                 <div className="status-message loading-status">
                     <div className="spinner"></div>
@@ -107,7 +106,6 @@ const DocumentViewer = () => {
                                 <tr key={file.id}>
                                     <td>
                                         <div className="filename-wrapper">
-                                            {/* Using your custom file extension icon generator */}
                                             {getFileIcon(file.fileName)}
                                             <span className="filename-text">{file.fileName}</span>
                                         </div>
@@ -122,7 +120,6 @@ const DocumentViewer = () => {
                                                 onClick={() => handleDownload(file.id)}
                                                 title="Download File"
                                             >
-                                                {/* 3. REPLACED DOWNLOAD SVG WITH ICON */}
                                                 <Icon name="download" size={18} />
                                                 Download
                                             </button>
@@ -131,7 +128,6 @@ const DocumentViewer = () => {
                                                 onClick={() => handleDelete(file.id, file.fileName)}
                                                 title="Delete File"
                                             >
-                                                {/* 4. REPLACED TRASH SVG WITH ICON */}
                                                 <Icon name="trash" size={18} />
                                             </button>
                                         </div>

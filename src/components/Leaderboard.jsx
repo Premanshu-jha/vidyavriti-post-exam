@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './Leaderboard.css';
-
-// 1. IMPORT YOUR SEPARATED COMPONENT HERE
 import LeaderboardAccordion from './LeaderboardAccordion';
 import { smartCacheGet, smartCacheSet } from './cacheManager';
 
@@ -13,6 +11,7 @@ const Leaderboard = () => {
     const [loadingExams, setLoadingExams] = useState(true);
     const [openAccordionId, setOpenAccordionId] = useState(null);
 
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
     const getToken = () => sessionStorage.getItem('authToken');
 
     useEffect(() => {
@@ -28,7 +27,7 @@ const Leaderboard = () => {
             return; 
         }
 
-        fetch(`/api/exams?type=${activeTab}`, {
+        fetch(`${API_BASE_URL}/api/exams?type=${activeTab}`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         })
         .then(res => res.json())
@@ -41,7 +40,7 @@ const Leaderboard = () => {
             console.error("Failed to load exams:", err);
             setLoadingExams(false);
         });
-    }, [activeTab]);
+    }, [activeTab, API_BASE_URL]);
 
     return (
         <div className="leaderboard-container">
@@ -62,7 +61,6 @@ const Leaderboard = () => {
                 ))}
             </div>
 
-            
             {loadingExams ? (
                 <div className="status-message loading-status">
                     <div className="spinner"></div>
@@ -79,6 +77,7 @@ const Leaderboard = () => {
                             isOpen={openAccordionId === exam.id}
                             onToggle={() => setOpenAccordionId(openAccordionId === exam.id ? null : exam.id)}
                             getToken={getToken}
+                            apiBaseUrl={API_BASE_URL}
                         />
                     ))}
                 </div>
