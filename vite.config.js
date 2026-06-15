@@ -7,7 +7,7 @@ export default defineConfig({
     proxy: {
       
       '/api': {
-        target: 'http://localhost:8080',  //https://omr-production-7712.up.railway.app
+        target: 'https://omr-production-7712.up.railway.app',  //https://omr-production-7712.up.railway.app
         changeOrigin: true,
         secure: false
       }
