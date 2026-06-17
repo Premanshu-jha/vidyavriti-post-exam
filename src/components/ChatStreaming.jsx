@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import './ChatStreaming.css';
-import { getFileIcon, Icon } from '../assets/utils'; 
+import { getFileIcon, Icon } from '../assets/utils';
 
 const ChatStreaming = () => {
     const [messages, setMessages] = useState([]);
@@ -15,10 +15,8 @@ const ChatStreaming = () => {
     const hasInitialized = useRef(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
     const sessionData = JSON.parse(sessionStorage.getItem("studentSession") || "{}");
     const { name, rollNo } = sessionData;
-
     const getToken = () => sessionStorage.getItem("authToken");
 
     const scrollToBottom = () => {
@@ -31,7 +29,6 @@ const ChatStreaming = () => {
 
     useEffect(() => {
         if (!rollNo) return;
-
         fetch(`${API_BASE_URL}/api/chat/${rollNo}/chat-history`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         })
@@ -41,20 +38,7 @@ const ChatStreaming = () => {
                     hasInitialized.current = true;
                     askQuestion(`Hi! my name is ${name} and my roll number is ${rollNo}!`);
                 } else {
-                    const processedHistory = data.map(msg => {
-                        if (msg.type === 'USER' && msg.content) {
-                            const matchWithSize = msg.content.match(/^\[Attached: (.*?) \| Size: (\d+)\]\n\n/);
-                            if (matchWithSize) {
-                                return {
-                                    ...msg,
-                                    content: msg.content.replace(matchWithSize[0], ''),
-                                    file: { name: matchWithSize[1], size: parseInt(matchWithSize[2], 10) }
-                                };
-                            }
-                        }
-                        return msg;
-                    });
-                    setMessages(processedHistory);
+                    setMessages(data);
                     hasInitialized.current = true;
                 }
             })
@@ -62,9 +46,7 @@ const ChatStreaming = () => {
     }, [API_BASE_URL, name, rollNo]);
 
     const handleFileChange = (e) => {
-        if (e.target.files && e.target.files[0]) {
-            setPendingFile(e.target.files[0]);
-        }
+        if (e.target.files && e.target.files[0]) setPendingFile(e.target.files[0]);
     };
 
     const removePendingFile = () => {
@@ -83,13 +65,7 @@ const ChatStreaming = () => {
         const textToUse = (typeof overridePrompt === 'string') ? overridePrompt : inputValue;
         if ((!textToUse.trim() && !pendingFile) || isStreaming) return;
 
-        const userPrompt = pendingFile
-            ? `[Attached: ${pendingFile.name} | Size: ${pendingFile.size}]\n\n${textToUse}`
-            : textToUse;
-
-        const fileToUpload = pendingFile;
         const currentTime = new Date().toISOString();
-
         setInputValue("");
         setPendingFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -97,14 +73,14 @@ const ChatStreaming = () => {
 
         setMessages(prev => [
             ...prev,
-            { type: 'USER', content: textToUse, timestamp: currentTime, file: fileToUpload ? { name: fileToUpload.name, size: fileToUpload.size } : null },
+            { type: 'USER', content: textToUse, timestamp: currentTime },
             { type: 'ASSISTANT', content: '', timestamp: currentTime }
         ]);
 
         try {
-            if (fileToUpload) {
+            if (pendingFile) {
                 const formData = new FormData();
-                formData.append("file", fileToUpload);
+                formData.append("file", pendingFile);
                 await fetch(`${API_BASE_URL}/api/chat/upload?rollNumber=${rollNo}`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${getToken()}` },
@@ -115,51 +91,49 @@ const ChatStreaming = () => {
             const response = await fetch(`${API_BASE_URL}/api/chat/${rollNo}/stream-chat`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ query: userPrompt })
+                body: JSON.stringify({ query: textToUse })
             });
 
             if (!response.ok) throw new Error("Streaming failed");
 
             const reader = response.body.getReader();
             const decoder = new TextDecoder();
-            
+            let buffer = "";
+
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
-                
-                const chunk = decoder.decode(value, { stream: true });
-                chunk.split('\n\n').forEach(event => {
-                    if (event.startsWith('data:')) {
-                        const dataStr = event.replace('data:', '').trim();
-                        if (dataStr === '[DONE]') return;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop();
+
+                for (const line of lines) {
+                    if (line.startsWith('data:')) {
+                        const dataStr = line.replace('data:', '').trim();
+                        if (dataStr === '[DONE]') continue;
                         try {
                             const parsed = JSON.parse(dataStr);
                             if (parsed.text) {
                                 setMessages(prev => {
                                     const newArray = [...prev];
-                                    newArray[newArray.length - 1].content += parsed.text;
+                                    const lastMsg = newArray[newArray.length - 1];
+                                    if (!lastMsg.content.endsWith(parsed.text)) {
+                                        lastMsg.content += parsed.text;
+                                    }
                                     return newArray;
                                 });
                             }
                         } catch (e) {}
                     }
-                });
+                }
             }
         } catch (error) {
-            console.error("Pipeline Error:", error);
-            setMessages(prev => {
-                const newArray = [...prev];
-                newArray[newArray.length - 1] = { 
-                    ...newArray[newArray.length - 1], 
-                    type: 'ERROR', 
-                    content: "Connection Error: Please try again." 
-                };
-                return newArray;
-            });
+            setMessages(prev => [...prev.slice(0, -1), { type: 'ERROR', content: "Connection Error." }]);
         } finally {
             setIsStreaming(false);
         }
-    }; 
+    };
 
     return (
         <div className="chat-container">
@@ -168,17 +142,8 @@ const ChatStreaming = () => {
                     <div key={index} className={`message message-${msg.type}`}>
                         <div className="message-header">{formatTime(msg.timestamp)}</div>
                         <div className="message-content">
-                            {msg.file && (
-                                <div className="message-file-attachment">
-                                    <span className="file-icon-wrapper">{getFileIcon(msg.file.name)}</span>
-                                    <div className="file-info">
-                                        <div className="file-name">{msg.file.name}</div>
-                                        <div className="file-size">{(msg.file.size / 1024).toFixed(1)} KB</div>
-                                    </div>
-                                </div>
-                            )}
                             {msg.type === 'USER' ? (
-                                msg.content || "Uploaded a document."
+                                msg.content
                             ) : (
                                 <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
                             )}
@@ -204,12 +169,7 @@ const ChatStreaming = () => {
                         style={{ display: 'none' }}
                         accept=".pdf,.xlsx,.xls,.png,.jpg,.jpeg,.docx,.txt"
                     />
-                    <button
-                        className="attach-button"
-                        onClick={() => fileInputRef.current?.click()}
-                        disabled={isStreaming}
-                        title="Attach File"
-                    >
+                    <button className="attach-button" onClick={() => fileInputRef.current?.click()} disabled={isStreaming}>
                         <Icon name="paperclip" size={20} />
                     </button>
                     <textarea
@@ -224,21 +184,13 @@ const ChatStreaming = () => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
                                 askQuestion();
-                                e.target.style.height = 'auto';
                             }
                         }}
-                        placeholder={pendingFile ? "Ask a question about this file..." : "Ask anything!"}
+                        placeholder="Ask anything!"
                         disabled={isStreaming}
-                        rows="1"
                     />
-                    <button
-                        className="chat-button"
-                        onClick={askQuestion}
-                        disabled={isStreaming}
-                    >
-                        {isStreaming ? "..." : (
-                            <Icon name="send" size={18} />
-                        )}
+                    <button className="chat-button" onClick={askQuestion} disabled={isStreaming}>
+                        <Icon name="send" size={18} />
                     </button>
                 </div>
             </div>
