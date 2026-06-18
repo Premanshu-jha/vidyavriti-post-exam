@@ -167,12 +167,12 @@ const StudentList = () => {
                                         <input name="classNum" value={editFormData.classNum} onChange={(e) => setEditFormData({...editFormData, classNum: e.target.value})} placeholder="Class" />
                                         <input name="city" value={editFormData.city} onChange={(e) => setEditFormData({...editFormData, city: e.target.value})} placeholder="City" />
                                         <input name="phone" value={editFormData.phone} onChange={(e) => setEditFormData({...editFormData, phone: e.target.value})} placeholder="Phone" />
-                                        <select name="role" value={addFormData.role} onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}>
+                                        <select name="role" value={editFormData.role} onChange={(e) => setEditFormData({...editFormData, role: e.target.value})}>
                                     <option value="STUDENT">Student</option><option value="ADMIN">Admin</option>
                                 </select>
                                 <div className="toggle-switch-container">
                                     <span className="toggle-switch-label">Bypass SMS OTP</span>
-                                    <label className="toggle-switch"><input type="checkbox" name="smsOtpByPass" checked={addFormData.smsOtpByPass} onChange={(e) => setEditFormData({...editFormData, smsOtpByPass: e.target.checked})} /><span className="toggle-slider"></span></label>
+                                    <label className="toggle-switch"><input type="checkbox" name="smsOtpByPass" checked={editFormData.smsOtpByPass} onChange={(e) => setEditFormData({...editFormData, smsOtpByPass: e.target.checked})} /><span className="toggle-slider"></span></label>
                                 </div>
                                         <button className="btn-success full-width" onClick={() => saveEdit(student.id)}>Save Changes</button>
                                         <button className="btn-secondary full-width" onClick={() => setEditingId(null)}>Cancel</button>
