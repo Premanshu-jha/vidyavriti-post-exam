@@ -81,7 +81,7 @@ const StudentList = () => {
 
     const saveEdit = (id) => {
         fetch(`${API_BASE_URL}/api/students/${id}`, {
-            method: 'PATCH',
+            method: 'PUT',
             headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
             body: JSON.stringify(editFormData)
         }).then(res => { if(res.ok) { setEditingId(null); flushStudentCache(); fetchStudents(); } });
