@@ -1,121 +1,81 @@
 import React, { useState, useRef } from 'react';
 import './UploadExamResults.css';
-import { getFileIcon, Icon } from '../assets/utils'; 
-
-const PROTECTED_KEYS = ['authToken', 'studentSession'];
+import { getFileIcon, Icon } from '../assets/utils';
 
 const UploadExamResults = () => {
     const [examType, setExamType] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
-    const [examIdentifier, setExamIdentifier] = useState("");
-    const [isUploadSuccess, setIsUploadSuccess] = useState(false);
     const [status, setStatus] = useState({ text: "", type: "" });
     const [isUploading, setIsUploading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    
+    const [isUploadSuccess, setIsUploadSuccess] = useState(false);
+
     const fileInputRef = useRef(null);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-
     const getToken = () => sessionStorage.getItem('authToken');
-
-    const handleExamTypeChange = (e) => {
-        setExamType(e.target.value);
-        setSelectedFile(null);
-        setExamIdentifier("");
-        setIsUploadSuccess(false);
-        setStatus({ text: "", type: "" });
-        if (fileInputRef.current) fileInputRef.current.value = "";
-    };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        setIsUploadSuccess(false);
-        setExamIdentifier("");
-        if (!file) { setSelectedFile(null); return; }
-
-        if (!file.name.startsWith("exam_results_") || !file.name.endsWith(".csv")) {
-            setStatus({ text: "Invalid file format. File name must start with 'exam_results_'", type: "error" });
+        if (!file) return;
+        if (!file.name.endsWith(".csv")) {
+            setStatus({ text: "Please upload a valid CSV file.", type: "error" });
             setSelectedFile(null);
-            if (fileInputRef.current) fileInputRef.current.value = ""; 
             return;
         }
         setSelectedFile(file);
-        setStatus({ text: "", type: "" }); 
+        setIsUploadSuccess(false);
+        setStatus({ text: "", type: "" });
     };
 
-    const handleUpload = () => {
-        if (!selectedFile || !examType) {
-            setStatus({ text: "Please select an Exam Type and a valid file first.", type: "error" });
-            return;
-        }
-
+    const handleUpload = async () => {
+        if (!selectedFile || !examType) return;
         setIsUploading(true);
-        setStatus({ text: "Uploading file to secure storage...", type: "loading" });
+        setStatus({ text: "Uploading to storage...", type: "loading" });
 
         const formData = new FormData();
         formData.append("file", selectedFile);
-        const uploadUrl = `${API_BASE_URL}/api/file/upload?examType=${encodeURIComponent(examType)}`;
 
-        fetch(uploadUrl, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${getToken()}` },
-            body: formData, 
-        })
-        .then(async res => {
-            if (!res.ok) throw new Error(await res.text() || "Upload failed");
-            return res.json(); 
-        })
-        .then(data => {
-            setExamIdentifier(data.examIdentifier);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/file/upload?examType=${encodeURIComponent(examType)}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+                body: formData
+            });
+            if (!res.ok) throw new Error("Upload failed");
             setIsUploadSuccess(true);
-            setStatus({ text: `File uploaded successfully! Ready for database processing.`, type: "success" });
+            setStatus({ text: "File uploaded successfully. Ready to push to database.", type: "success" });
+        } catch (err) {
+            setStatus({ text: `Upload Error: ${err.message}`, type: "error" });
+        } finally {
             setIsUploading(false);
-        })
-        .catch(err => {
-            console.error(err); 
-            setStatus({ text: `Error uploading file: ${err.message}`, type: "error" });
-            setIsUploading(false);
-        });
+        }
     };
 
-    const handleBulkUpdate = () => {
-        if (!examType || !examIdentifier) {
-            setStatus({ text: "Missing Exam parameters.", type: "error" });
-            return;
-        }
-
+    const handleBulkUpdate = async () => {
+        if (!examType || !selectedFile) return;
         setIsProcessing(true);
-        setStatus({ text: "Processing data... This may take a moment.", type: "loading" });
+        setStatus({ text: "Pushing records to database...", type: "loading" });
 
-        const bulkUrl = `${API_BASE_URL}/api/file/${encodeURIComponent(examType)}/${encodeURIComponent(examIdentifier)}/bulk-update`;
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-        fetch(bulkUrl, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${getToken()}` }
-        })
-        .then(res => {
-            if (!res.ok) return res.text().then(text => { throw new Error(text) });
-            return res.text();
-        })
-        .then(message => {
+        try {
+            const bulkUrl = `${API_BASE_URL}/api/file/${encodeURIComponent(examType)}/bulk-update`;
+            const res = await fetch(bulkUrl, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+                body: formData
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const message = await res.text();
             setStatus({ text: message, type: "success" });
-            setIsProcessing(false);
-            setExamType("");
-            setSelectedFile(null);
-            setExamIdentifier("");
             setIsUploadSuccess(false);
-            if (fileInputRef.current) fileInputRef.current.value = "";
-
-            const backup = {};
-            PROTECTED_KEYS.forEach(k => { if (sessionStorage.getItem(k)) backup[k] = sessionStorage.getItem(k); });
-            sessionStorage.clear(); 
-            Object.entries(backup).forEach(([k, v]) => sessionStorage.setItem(k, v));
-        })
-        .catch(err => {
-            console.error(err);
-            setStatus({ text: `Processing Error: ${err.message}`, type: "error" }); 
+            setSelectedFile(null);
+        } catch (err) {
+            setStatus({ text: `Processing Error: ${err.message}`, type: "error" });
+        } finally {
             setIsProcessing(false);
-        });
+        }
     };
 
     return (
@@ -123,8 +83,8 @@ const UploadExamResults = () => {
             <div className="dashboard-header"><h2>Upload Exam Results</h2></div>
             <div className="exam-card uploader-card">
                 <div className="form-group">
-                    <label htmlFor="examType" className="input-label">1. Select Exam Type</label>
-                    <select id="examType" className="styled-select" value={examType} onChange={handleExamTypeChange} disabled={isUploading || isProcessing}>
+                    <label className="input-label">1. Select Exam Type</label>
+                    <select className="styled-select" value={examType} onChange={(e) => setExamType(e.target.value)} disabled={isUploading || isProcessing}>
                         <option value="" disabled>-- Choose an Exam --</option>
                         <option value="JEE-MAINS">JEE-MAINS</option>
                         <option value="JEE-ADVANCED">JEE-ADVANCED</option>
@@ -132,36 +92,28 @@ const UploadExamResults = () => {
                     </select>
                 </div>
 
-                <div className={`upload-dropzone ${!examType ? 'disabled-zone' : ''}`}>
-                    <label className="input-label">2. Upload Result CSV</label>
+                <div className="upload-dropzone">
+                    <label className="input-label">2. Select & Upload CSV</label>
                     <input type="file" accept=".csv" onChange={handleFileChange} className="hidden-file-input" ref={fileInputRef} disabled={!examType || isUploading || isProcessing} />
                     <button className="btn-outline" onClick={() => fileInputRef.current.click()} disabled={!examType || isUploading || isProcessing}>
-                        <Icon name="paperclip" size={18} /> Browse for File...
+                        <Icon name="paperclip" size={18} /> Browse...
                     </button>
-                    {selectedFile && (
-                        <div className="selected-file-display">
-                            <span className="file-icon-wrapper">{getFileIcon(selectedFile.name)}</span>
-                            <span className="file-name-text"><strong>Selected:</strong> {selectedFile.name}</span>
-                        </div>
-                    )}
-                    <br />
+                    {selectedFile && <div className="selected-file-display">{selectedFile.name}</div>}
+                    
                     <button className="btn-primary" onClick={handleUpload} disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}>
                         {isUploading ? "Uploading..." : "Upload to Server"}
                     </button>
                 </div>
 
-                <div className={`process-section ${!isUploadSuccess ? 'disabled-zone' : ''}`}>
+                <div className="process-section">
                     <label className="input-label">3. Synchronize Database</label>
-                    <p className="process-description">Push the validated records into the student database.</p>
-                    <button className="btn-success" onClick={handleBulkUpdate} disabled={!isUploadSuccess || isUploading || isProcessing}>
-                        {isProcessing ? "Processing Data..." : "Push Data to Database"}
+                    <button className="btn-success" onClick={handleBulkUpdate} disabled={!isUploadSuccess || isProcessing}>
+                        {isProcessing ? "Processing..." : "Push Data to Database"}
                     </button>
                 </div>
 
                 {status.text && (
                     <div className={`status-alert ${status.type}`}>
-                        {status.type === 'success' && <Icon name="check" size={20} color="currentColor" />}
-                        {status.type === 'loading' && <Icon name="clock" size={20} color="currentColor" />}
                         <strong>{status.text}</strong>
                     </div>
                 )}
