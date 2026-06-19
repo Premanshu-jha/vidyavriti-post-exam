@@ -12,12 +12,12 @@ const UploadExamResults = () => {
 
     const fileInputRef = useRef(null);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
-    
+
     // Auth Helpers
     const getToken = () => sessionStorage.getItem('authToken');
     const getAuthHeaders = () => ({
         'Authorization': `Bearer ${getToken()}`,
-        'X-Protective-Key': 'your-secret-key-here' 
+        'X-Protective-Key': 'your-secret-key-here'
     });
 
     const handleFileChange = (e) => {
@@ -73,9 +73,9 @@ const UploadExamResults = () => {
                 headers: getAuthHeaders(),
                 body: formData
             });
-            
+
             if (!res.ok) throw new Error(await res.text());
-            
+
             // Backup, Clear, and Restore Protected Session Keys
             const PROTECTED_KEYS = ['authToken', 'studentSession', 'rollNumber'];
             const backup = {};
@@ -116,14 +116,16 @@ const UploadExamResults = () => {
                     <button className="btn-outline" onClick={() => fileInputRef.current.click()} disabled={!examType || isUploading || isProcessing}>
                         <Icon name="paperclip" size={18} /> Browse...
                     </button>
-                    
+
                     {selectedFile && (
                         <div className="selected-file-display">
-                            <img src={getFileIcon(selectedFile.name)} alt="file-icon" className="file-icon" style={{width: '20px', marginRight: '8px'}} />
-                            {selectedFile.name}
+                            {getFileIcon(selectedFile.name)}
+                            <span className="filename-text" style={{ marginLeft: '8px' }}>
+                                {selectedFile.name}
+                            </span>
                         </div>
                     )}
-                    
+
                     <button className="btn-primary" onClick={handleUpload} disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}>
                         {isUploading ? "Uploading..." : "Upload to Server"}
                     </button>
