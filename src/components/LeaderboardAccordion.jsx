@@ -153,7 +153,7 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) 
                                                     <td>{record.student?.name || 'Unknown'}</td>
                                                     <td>{record.student?.city || '-'}</td>
                                                     <td className="score-col">
-                                                        <span className="highlight-score">{record.totalMarks}</span>
+                                                        <span className="highlight-score">{record.totalMarksScored}</span>
                                                         <span className="max-score"> / {exam.examTotalMarks}</span>
                                                     </td>
                                                     <td>
