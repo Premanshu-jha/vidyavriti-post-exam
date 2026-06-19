@@ -13,7 +13,7 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) 
     const [loading, setLoading] = useState(false);
     
     const [pageNumber, setPageNumber] = useState(0);
-    const [pageSize] = useState(10);
+    const [pageSize] = useState(15);
     const [filterType, setFilterType] = useState('All');
     const [filterValue, setFilterValue] = useState('');
 

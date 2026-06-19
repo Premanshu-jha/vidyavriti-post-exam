@@ -14,7 +14,7 @@ const StudentList = () => {
         const savedPage = smartCacheGet('dashboard_pageNumber');
         return typeof savedPage === 'number' ? savedPage : 0;
     }); 
-    const [pageSize] = useState(12);
+    const [pageSize] = useState(15);
     const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filterType, setFilterType] = useState(() => smartCacheGet('dashboard_filterType') || 'All');
