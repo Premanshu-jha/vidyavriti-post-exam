@@ -12,7 +12,13 @@ const UploadExamResults = () => {
 
     const fileInputRef = useRef(null);
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+    
+    // Auth Helpers
     const getToken = () => sessionStorage.getItem('authToken');
+    const getAuthHeaders = () => ({
+        'Authorization': `Bearer ${getToken()}`,
+        'X-Protective-Key': 'your-secret-key-here' 
+    });
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -34,11 +40,12 @@ const UploadExamResults = () => {
 
         const formData = new FormData();
         formData.append("file", selectedFile);
+        formData.append("rollNumber", sessionStorage.getItem('rollNumber') || '');
 
         try {
             const res = await fetch(`${API_BASE_URL}/api/file/upload?examType=${encodeURIComponent(examType)}`, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${getToken()}` },
+                headers: getAuthHeaders(),
                 body: formData
             });
             if (!res.ok) throw new Error("Upload failed");
@@ -63,10 +70,21 @@ const UploadExamResults = () => {
             const bulkUrl = `${API_BASE_URL}/api/file/${encodeURIComponent(examType)}/bulk-update`;
             const res = await fetch(bulkUrl, {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${getToken()}` },
+                headers: getAuthHeaders(),
                 body: formData
             });
+            
             if (!res.ok) throw new Error(await res.text());
+            
+            // Backup, Clear, and Restore Protected Session Keys
+            const PROTECTED_KEYS = ['authToken', 'studentSession', 'rollNumber'];
+            const backup = {};
+            PROTECTED_KEYS.forEach(key => backup[key] = sessionStorage.getItem(key));
+            sessionStorage.clear();
+            Object.keys(backup).forEach(key => {
+                if (backup[key]) sessionStorage.setItem(key, backup[key]);
+            });
+
             const message = await res.text();
             setStatus({ text: message, type: "success" });
             setIsUploadSuccess(false);
@@ -98,7 +116,13 @@ const UploadExamResults = () => {
                     <button className="btn-outline" onClick={() => fileInputRef.current.click()} disabled={!examType || isUploading || isProcessing}>
                         <Icon name="paperclip" size={18} /> Browse...
                     </button>
-                    {selectedFile && <div className="selected-file-display">{selectedFile.name}</div>}
+                    
+                    {selectedFile && (
+                        <div className="selected-file-display">
+                            <img src={getFileIcon(selectedFile.name)} alt="file-icon" className="file-icon" style={{width: '20px', marginRight: '8px'}} />
+                            {selectedFile.name}
+                        </div>
+                    )}
                     
                     <button className="btn-primary" onClick={handleUpload} disabled={!selectedFile || isUploading || isProcessing || isUploadSuccess}>
                         {isUploading ? "Uploading..." : "Upload to Server"}
