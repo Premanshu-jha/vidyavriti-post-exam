@@ -92,7 +92,7 @@ const StudentReport = () => {
     activeSubjects.forEach(sub => subjectSums[sub] = { scored: 0, max: 0 });
 
     filteredReports.forEach(r => {
-        sumOverallScored += r.totalMarks;
+        sumOverallScored += r.totalMarksScored;
         sumOverallMax += r.exam.examTotalMarks;
         activeSubjects.forEach(sub => {
             subjectSums[sub].scored += r[`${sub}MarksScored`] || 0;
@@ -189,7 +189,7 @@ const StudentReport = () => {
                                                 <h3>{ChartIcon} {title}</h3>
                                                 <div className="css-bar-chart">
                                                     {filteredReports.map((report, idx) => {
-                                                        const scored = isOverall ? report.totalMarks : (report[`${subject}MarksScored`] || 0);
+                                                        const scored = isOverall ? report.totalMarksScored : (report[`${subject}MarksScored`] || 0);
                                                         const max = isOverall ? report.exam.examTotalMarks : (report.exam[`${subject}TotalMarks`] || 1);
                                                         const percent = Math.max(0, (scored / max) * 100);
                                                         return (
@@ -231,7 +231,7 @@ const StudentReport = () => {
                                                 <div className="accordion-summary-tags">
                                                     <span><Icon name="calendar" size={14} color="#64748b"/> {examDate}</span>
                                                     <span className="rank-badge-header">Rank: #{report.rank}</span>
-                                                    <span>Score: {report.totalMarks}/{report.exam.examTotalMarks}</span>
+                                                    <span>Score: {report.totalMarksScored}/{report.exam.examTotalMarks}</span>
                                                 </div>
                                             </div>
                                         </button>
@@ -273,7 +273,7 @@ const StudentReport = () => {
                                                                     <td className="text-danger">{report.totalWrongAnswers}</td>
                                                                     <td className="text-success">+{report.totalPositiveMarks}</td>
                                                                     <td className="text-danger">{report.totalNegativeMarks}</td>
-                                                                    <td className={`summary-score ${report.totalMarks < 0 ? 'text-danger' : ''}`}>{report.totalMarks}</td>
+                                                                    <td className={`summary-score ${report.totalMarksScored < 0 ? 'text-danger' : ''}`}>{report.totalMarksScored}</td>
                                                                     <td>{report.exam.examTotalMarks}</td>
                                                                     <td>{report.totalTimeSpent}</td>
                                                                     <td>{report.avgTimeEachQuestion}</td>

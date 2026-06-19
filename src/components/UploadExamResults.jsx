@@ -16,8 +16,7 @@ const UploadExamResults = () => {
     // Auth Helpers
     const getToken = () => sessionStorage.getItem('authToken');
     const getAuthHeaders = () => ({
-        'Authorization': `Bearer ${getToken()}`,
-        'X-Protective-Key': 'your-secret-key-here'
+        'Authorization': `Bearer ${getToken()}`
     });
 
     const handleFileChange = (e) => {
