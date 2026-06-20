@@ -26,9 +26,10 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) 
         const cacheKey = `lb_data_${exam.id}_p${currentPage}_f${filterType}_v${filterValue.toLowerCase()}`;
 
         const cachedData = smartCacheGet(cacheKey);
-        if (cachedData) {
+        if (cachedData && cachedData.length > 0) {
             setLeaderboardData(cachedData);
             setLoading(false);
+            console.log('leaderboard:',leaderboardData);
             return; 
         }
 
@@ -39,7 +40,10 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) 
         }
 
         fetch(url, { headers: { 'Authorization': `Bearer ${getToken()}` } })
-        .then(res => res.json())
+        .then(res => {
+            console.log("res:",res)
+            return res.json()
+    })
         .then(data => {
             smartCacheSet(cacheKey, data); 
             setLeaderboardData(data);
@@ -142,7 +146,7 @@ const LeaderboardAccordion = ({ exam, isOpen, onToggle, getToken, apiBaseUrl }) 
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {leaderboardData.map((record) => {
+                                        {leaderboardData && leaderboardData.map((record) => {
                                             const accuracy = record.totalAttemptedQuestions > 0 
                                                 ? Math.round((record.totalCorrectAnswers / record.totalAttemptedQuestions) * 100) 
                                                 : 0;

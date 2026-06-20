@@ -130,6 +130,7 @@ const ChatStreaming = () => {
             setIsStreaming(false);
             setPendingFile(null);
             setUploadedFileId(null);
+            if (fileInputRef.current) fileInputRef.current.value = ""; 
         }
     };
 
