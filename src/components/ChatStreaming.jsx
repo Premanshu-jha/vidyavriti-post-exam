@@ -9,7 +9,7 @@ const ChatStreaming = () => {
     const [inputValue, setInputValue] = useState("");
     const [isStreaming, setIsStreaming] = useState(false);
     const [pendingFile, setPendingFile] = useState(null);
-    const [uploadedFileId, setUploadedFileId] = useState(null); 
+    const uploadedFileIdRef = useRef(null);
     const [isUploading, setIsUploading] = useState(false); 
     const [status, setStatus] = useState({ text: "", type: "" });
 
@@ -51,7 +51,7 @@ const ChatStreaming = () => {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (uploadedFileId) await removePendingFile();
+        if (uploadedFileIdRef.current) await removePendingFile();
 
         setPendingFile(file);
         setIsUploading(true);
@@ -66,7 +66,9 @@ const ChatStreaming = () => {
             });
             if (!res.ok) throw new Error("Upload/Ingestion failed");
             const data = await res.json();
-            setUploadedFileId(data.id); 
+            console.log("data",data);
+            uploadedFileIdRef.current = data.id;
+            console.log("id",uploadedFileIdRef.current);
         } catch (err) {
             setStatus({ text: "Upload failed.", type: "error" });
             setPendingFile(null);
@@ -76,16 +78,19 @@ const ChatStreaming = () => {
     };
 
     const removePendingFile = async () => {
-        if (uploadedFileId && pendingFile) {
+        const currentId = uploadedFileIdRef.current;
+        console.log("Delete triggered. ID:", currentId, "File:", pendingFile?.name);
+        if (currentId && pendingFile) {
             try {
-                await fetch(`${API_BASE_URL}/api/chat/delete/${uploadedFileId}?file=${pendingFile.name}`, {
+                const safeFileName = encodeURIComponent(pendingFile.name);
+                await fetch(`${API_BASE_URL}/api/chat/delete/${currentId}?fileName=${safeFileName}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${getToken()}` }
                 });
             } catch (err) { console.error("Deletion failed", err); }
         }
         setPendingFile(null);
-        setUploadedFileId(null);
+        uploadedFileIdRef.current = null;
         if (fileInputRef.current) fileInputRef.current.value = "";
     };
 
@@ -151,7 +156,7 @@ const ChatStreaming = () => {
         } finally {
             setIsStreaming(false);
             setPendingFile(null);
-            setUploadedFileId(null);
+            uploadedFileIdRef.current = null;
             if (fileInputRef.current) fileInputRef.current.value = ""; 
         }
     };
@@ -159,13 +164,16 @@ const ChatStreaming = () => {
     return (
         <div className="chat-container">
             <div className="chat-history">
-                {messages.map((msg, index) => (
+                {messages.map((msg, index) => {
+                    const attachedMatch = msg.content.match(/\[Attached: (.*?)\]/);
+                    const fileName = attachedMatch ? attachedMatch[1] : null;
+                    return (
                     <div key={index} className={`message message-${msg.type}`}>
                         <div className="message-content">
-                            {msg.file && (
+                            {fileName && (
                                 <div className="message-file-attachment">
-                                    {getFileIcon(msg.file.name)}
-                                    <div className="file-info">{msg.file.name}</div>
+                                    {getFileIcon(fileName)}
+                                    <div className="file-info">{fileName}</div>
                                 </div>
                             )}
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -173,7 +181,8 @@ const ChatStreaming = () => {
                             </ReactMarkdown>
                         </div>
                     </div>
-                ))}
+                )
+})}
                 <div ref={messagesEndRef} />
             </div>
 
