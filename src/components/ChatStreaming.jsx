@@ -22,6 +22,28 @@ const ChatStreaming = () => {
     const getToken = () => sessionStorage.getItem("authToken");
 
     useEffect(() => {
+        const fetchHistory = async () => {
+            if (!rollNo) return;
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/chat/${rollNo}/chat-history`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                if (res.ok) {
+                    const history = await res.json();
+                    setMessages(history);
+                }
+            } catch (err) {
+                console.error("Failed to load chat history", err);
+            }
+        };
+        fetchHistory();
+    }, [rollNo, API_BASE_URL]);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
+
+    useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
