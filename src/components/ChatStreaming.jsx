@@ -165,10 +165,16 @@ const ChatStreaming = () => {
         <div className="chat-container">
             <div className="chat-history">
                 {messages.map((msg, index) => {
+                    const dateObj = msg.timestamp ? new Date(msg.timestamp) : new Date();
+                    const formattedDate = dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+                    const formattedTime = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
                     const attachedMatch = msg.content.match(/\[Attached: (.*?)\]/);
                     const fileName = attachedMatch ? attachedMatch[1] : null;
                     return (
                     <div key={index} className={`message message-${msg.type}`}>
+                        <div className="message-header">
+                         {msg.type === 'USER' ? 'You' : 'AI Assistant'} • {formattedDate}, {formattedTime}
+                    </div>
                         <div className="message-content">
                             {fileName && (
                                 <div className="message-file-attachment">
