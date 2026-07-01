@@ -3,7 +3,6 @@ import './UploadExamResults.css';
 import { getFileIcon, Icon } from '../assets/utils';
 
 const UploadExamResults = () => {
-    const [examType, setExamType] = useState("");
     const [selectedFile, setSelectedFile] = useState(null);
     const [status, setStatus] = useState({ text: "", type: "" });
     const [isUploading, setIsUploading] = useState(false);
@@ -33,7 +32,7 @@ const UploadExamResults = () => {
     };
 
     const handleUpload = async () => {
-        if (!selectedFile || !examType) return;
+        if (!selectedFile) return;
         setIsUploading(true);
         setStatus({ text: "Uploading to storage...", type: "loading" });
 
@@ -42,7 +41,7 @@ const UploadExamResults = () => {
         formData.append("rollNumber", sessionStorage.getItem('rollNumber') || '');
 
         try {
-            const res = await fetch(`${API_BASE_URL}/api/file/upload?examType=${encodeURIComponent(examType)}`, {
+            const res = await fetch(`${API_BASE_URL}/api/file/upload`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: formData
@@ -58,7 +57,7 @@ const UploadExamResults = () => {
     };
 
     const handleBulkUpdate = async () => {
-        if (!examType || !selectedFile) return;
+        if (!selectedFile) return;
         setIsProcessing(true);
         setStatus({ text: "Pushing records to database...", type: "loading" });
 
@@ -66,7 +65,7 @@ const UploadExamResults = () => {
         formData.append("file", selectedFile);
 
         try {
-            const bulkUrl = `${API_BASE_URL}/api/file/${encodeURIComponent(examType)}/bulk-update`;
+            const bulkUrl = `${API_BASE_URL}/api/file/bulk-update`;
             const res = await fetch(bulkUrl, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -99,20 +98,11 @@ const UploadExamResults = () => {
         <div className="dashboard-container">
             <div className="dashboard-header"><h2>Upload Exam Results</h2></div>
             <div className="exam-card uploader-card">
-                <div className="form-group">
-                    <label className="input-label">1. Select Exam Type</label>
-                    <select className="styled-select" value={examType} onChange={(e) => setExamType(e.target.value)} disabled={isUploading || isProcessing}>
-                        <option value="" disabled>-- Choose an Exam --</option>
-                        <option value="JEE-MAINS">JEE-MAINS</option>
-                        <option value="JEE-ADVANCED">JEE-ADVANCED</option>
-                        <option value="EAPCET">EAPCET</option>
-                    </select>
-                </div>
-
+                
                 <div className="upload-dropzone">
                     <label className="input-label">2. Select & Upload CSV</label>
-                    <input type="file" accept=".csv" onChange={handleFileChange} className="hidden-file-input" ref={fileInputRef} disabled={!examType || isUploading || isProcessing} />
-                    <button className="btn-outline" onClick={() => fileInputRef.current.click()} disabled={!examType || isUploading || isProcessing}>
+                    <input type="file" accept=".csv" onChange={handleFileChange} className="hidden-file-input" ref={fileInputRef} disabled={isUploading || isProcessing} />
+                    <button className="btn-outline" onClick={() => fileInputRef.current.click()} disabled={isUploading || isProcessing}>
                         <Icon name="paperclip" size={18} /> Browse...
                     </button>
 
