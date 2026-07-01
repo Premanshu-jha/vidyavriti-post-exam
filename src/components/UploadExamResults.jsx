@@ -88,7 +88,8 @@ const UploadExamResults = () => {
             setIsUploadSuccess(false);
             setSelectedFile(null);
         } catch (err) {
-            setStatus({ text: `Processing Error: ${err.message}`, type: "error" });
+            let message = JSON.parse(err.message).message || err.message;
+            setStatus({ text: `Processing Error: ${message}`, type: "error" });
         } finally {
             setIsProcessing(false);
         }
