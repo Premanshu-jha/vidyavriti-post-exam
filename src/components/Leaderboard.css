@@ -159,3 +159,8 @@
 .search-btn:active {
     transform: translateY(0);
 }
+
+.search-input::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
