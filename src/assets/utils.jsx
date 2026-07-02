@@ -109,7 +109,8 @@ export const Icon = ({ name, size = 16, color = "currentColor", className = "" }
         filter: <svg {...defaultProps} viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>,
         chevronRight: <svg {...defaultProps} viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>,
         chevronLeft: <svg {...defaultProps} viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>,
-        report: <svg {...defaultProps} viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 18v-2"></path><path d="M12 18v-4"></path><path d="M16 18v-6"></path></svg>
+        report: <svg {...defaultProps} viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M8 18v-2"></path><path d="M12 18v-4"></path><path d="M16 18v-6"></path></svg>,
+        search: <svg {...defaultProps} viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     };
 
     return icons[name] || icons.fallback;
