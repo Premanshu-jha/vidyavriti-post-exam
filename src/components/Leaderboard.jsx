@@ -75,8 +75,10 @@ const Leaderboard = () => {
             <div className="search-bar-container">
                 <input 
                     type="text" 
+                    placeholder="Search by exam name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                     className="search-input"
                 />
                 <button className="search-btn" onClick={handleSearch}>
